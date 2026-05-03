@@ -1,0 +1,61 @@
+# Aristotle AI .gitignore
+# As per CONSTITUTION.md Section 7: Never commit
+
+# === GGUF Model Files (CRITICAL - NEVER COMMIT) ===
+models/
+*.gguf
+*.bin
+
+# === Build Artifacts (PyInstaller) ===
+dist/
+build/
+*.spec
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# === Secrets and Credentials ===
+.env
+.env.local
+*.key
+*.pem
+credentials.json
+secrets.yaml
+config.local.json
+
+# === User Data (Privacy) ===
+data/sessions/
+data/user_data/
+*.encrypted
+*.session
+
+# === IDE / Editor ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# === Testing ===
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# === Logs ===
+*.log
+logs/
+
+# === OS ===
+Thumbs.db
+desktop.ini
