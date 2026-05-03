@@ -87,7 +87,13 @@ pip install -r requirements.txt
 
 **4. Download AI Model**
 
-Download **TinyLlama Q4_K_M** (~650 MB):
+**Option A: Automatic (Recommended)**
+```bash
+python setup.py
+```
+This automatically downloads TinyLlama Q4_K_M (~650 MB) from HuggingFace.
+
+**Option B: Manual Download**
 - Visit: [TinyLlama-1.1B-GGUF](https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF)
 - Download: `tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf`
 - Place as: `./models/model_new.gguf`
