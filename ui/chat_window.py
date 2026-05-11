@@ -29,7 +29,8 @@ FONT       = "'Arimo', 'Arial', sans-serif"
 
 
 class InferenceWorker(QThread):
-    response_ready = pyqtSignal(str, float)
+    token_received = pyqtSignal(str)
+    stream_done    = pyqtSignal(str, float)   # full text, elapsed seconds
 
     def __init__(self, prompt: str, history: list):
         super().__init__()
@@ -37,10 +38,13 @@ class InferenceWorker(QThread):
         self.history = history
 
     def run(self):
-        start = time.perf_counter()
-        response = inference.ask(self.prompt, self.history)
+        start     = time.perf_counter()
+        full_text = ""
+        for token in inference.ask_stream(self.prompt, self.history):
+            full_text += token
+            self.token_received.emit(token)
         elapsed = time.perf_counter() - start
-        self.response_ready.emit(response, elapsed)
+        self.stream_done.emit(full_text, elapsed)
 
 
 class _MessageBubble(QFrame):
@@ -84,6 +88,43 @@ class _MessageBubble(QFrame):
         lay.addWidget(lbl)
 
 
+class _StreamingBubble(QFrame):
+    """AI bubble that fills token-by-token during streaming."""
+
+    def __init__(self):
+        super().__init__()
+        self._text = ""
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setStyleSheet(f"""
+            _StreamingBubble {{
+                background-color: {BG_PANEL};
+                border: 0.667px solid {BORDER};
+                border-radius: 12px;
+                border-bottom-left-radius: 4px;
+            }}
+        """)
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(14, 10, 14, 10)
+        self._lbl = QLabel("")
+        self._lbl.setWordWrap(True)
+        self._lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self._lbl.setStyleSheet(f"""
+            color: {TEXT_MAIN};
+            font-family: {FONT};
+            font-size: 14px;
+            line-height: 22px;
+            background: transparent;
+        """)
+        lay.addWidget(self._lbl)
+
+    def append_token(self, token: str):
+        self._text += token
+        self._lbl.setText(self._text)
+
+    def get_text(self) -> str:
+        return self._text
+
+
 class ChatWindow(QWidget):
     logout_requested = pyqtSignal()
 
@@ -93,6 +134,7 @@ class ChatWindow(QWidget):
         self.conversation_history: list = []
         self._worker: InferenceWorker | None = None
         self._urdu_mode: bool = False
+        self._streaming_bubble: _StreamingBubble | None = None
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet(f"background-color: {BG_DARK};")
         self._build()
@@ -491,6 +533,19 @@ class ChatWindow(QWidget):
         self._msgs_lay.insertWidget(self._msgs_lay.count() - 1, wrapper)
         self._scroll_to_bottom()
 
+    def _start_streaming_bubble(self) -> _StreamingBubble:
+        bubble = _StreamingBubble()
+        bubble.setMaximumWidth(600)
+        wrapper = QWidget()
+        wrapper.setStyleSheet("background: transparent;")
+        w_lay = QHBoxLayout(wrapper)
+        w_lay.setContentsMargins(0, 0, 0, 0)
+        w_lay.addWidget(bubble)
+        w_lay.addStretch()
+        self._msgs_lay.insertWidget(self._msgs_lay.count() - 1, wrapper)
+        self._scroll_to_bottom()
+        return bubble
+
     def _scroll_to_bottom(self):
         QTimer.singleShot(50, lambda: self._scroll.verticalScrollBar().setValue(
             self._scroll.verticalScrollBar().maximum()
@@ -510,7 +565,7 @@ class ChatWindow(QWidget):
 
         self._input.clear()
 
-        # Ghost model: instant cache lookup before touching the LLM
+        # Ghost model: instant analogy cache hit — no LLM needed
         cached = ghost_model.lookup(text)
         if cached:
             self._add_bubble(text, is_user=True)
@@ -527,6 +582,9 @@ class ChatWindow(QWidget):
         self._add_bubble(text, is_user=True)
         self.conversation_history.append({"role": "user", "content": text})
 
+        # Create streaming bubble now so tokens fill it as they arrive
+        self._streaming_bubble = self._start_streaming_bubble()
+
         # Prepend language instruction when Urdu mode is on
         prompt = text
         if self._urdu_mode:
@@ -536,13 +594,18 @@ class ChatWindow(QWidget):
             )
 
         self._worker = InferenceWorker(prompt, self.conversation_history)
-        self._worker.response_ready.connect(self._on_response)
+        self._worker.token_received.connect(self._on_token)
+        self._worker.stream_done.connect(self._on_stream_done)
         self._worker.start()
 
-    def _on_response(self, response: str, elapsed: float):
-        self._add_bubble(response, is_user=False)
-        self.conversation_history.append({"role": "assistant", "content": response})
+    def _on_token(self, token: str):
+        if self._streaming_bubble:
+            self._streaming_bubble.append_token(token)
+            self._scroll_to_bottom()
 
+    def _on_stream_done(self, full_text: str, elapsed: float):
+        self.conversation_history.append({"role": "assistant", "content": full_text})
+        self._streaming_bubble = None
         self._worker = None
         self._input.setEnabled(True)
         self._send_btn.setEnabled(True)

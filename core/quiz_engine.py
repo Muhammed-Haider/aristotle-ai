@@ -6,13 +6,19 @@ Exposes: generate_question(topic, level), evaluate_answer(question, answer, topi
 """
 
 import core.inference as inference
+import cache.ghost_model as ghost_model
 
 
 def generate_question(topic: str, level: str = "Intermediate") -> dict:
     """
-    Generate a CS quiz question via the LLM.
+    Return a quiz question for topic/level.
+    Checks the pre-written cache first; falls back to LLM generation on a miss.
     Returns: {"question": str, "topic": str, "level": str}
     """
+    cached = ghost_model.lookup_quiz(topic, level)
+    if cached:
+        return cached
+
     prompt = (
         f"Generate one {level}-level Computer Science quiz question about {topic}. "
         f"Write only the question — no answer, no explanation, no numbering."

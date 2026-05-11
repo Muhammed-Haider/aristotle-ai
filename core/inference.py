@@ -134,6 +134,34 @@ class InferenceEngine:
 
         return conversation
 
+    def ask_stream(self, prompt: str, history: Optional[List[Dict[str, str]]] = None,
+                   max_tokens: int = 300):
+        """
+        Generator that yields response tokens one by one for streaming display.
+        Falls back to yielding a single error string if the model is not loaded.
+        """
+        if not self.is_loaded:
+            if not self.load_model():
+                yield "Error: Model not loaded. Please check model file exists."
+                return
+
+        try:
+            full_prompt = self._format_prompt(prompt, history)
+            stream = self.llm(
+                full_prompt,
+                max_tokens=max_tokens,
+                stop=["Q:", "\n\n", "User:"],
+                echo=False,
+                temperature=0.7,
+                stream=True,
+            )
+            for chunk in stream:
+                token = chunk["choices"][0]["text"]
+                if token:
+                    yield token
+        except Exception as e:
+            yield f"Error generating response: {str(e)}"
+
     def unload_model(self):
         """Unload the model from memory."""
         if self.llm:
@@ -160,6 +188,12 @@ def ask(prompt: str, history: Optional[List[Dict[str, str]]] = None,
         str: AI response
     """
     return _engine.ask(prompt, history, max_tokens)
+
+
+def ask_stream(prompt: str, history: Optional[List[Dict[str, str]]] = None,
+               max_tokens: int = 300):
+    """Public API: stream response tokens one by one."""
+    return _engine.ask_stream(prompt, history, max_tokens)
 
 
 def load_model(model_path: Optional[str] = None) -> bool:

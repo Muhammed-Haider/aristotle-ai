@@ -1,0 +1,86 @@
+{
+  "Data Structures": [
+    { "question": "What is the time complexity of accessing an element by index in an array?", "level": "Beginner" },
+    { "question": "What is the difference between a stack and a queue?", "level": "Beginner" },
+    { "question": "How does a hash table resolve collisions using chaining?", "level": "Intermediate" },
+    { "question": "What is the worst-case time complexity of searching in a Binary Search Tree, and when does it occur?", "level": "Intermediate" },
+    { "question": "Explain the difference between a min-heap and a max-heap, and describe how insertion works in a min-heap.", "level": "Intermediate" },
+    { "question": "What is the difference between a graph's adjacency list and adjacency matrix representations? When would you prefer one over the other?", "level": "Advanced" },
+    { "question": "Explain how an AVL tree maintains balance. What rotations are performed and when?", "level": "Advanced" }
+  ],
+  "Algorithms": [
+    { "question": "What does O(n log n) time complexity mean? Give an example of an algorithm with this complexity.", "level": "Beginner" },
+    { "question": "Explain the difference between Breadth-First Search (BFS) and Depth-First Search (DFS).", "level": "Beginner" },
+    { "question": "How does merge sort work? What is its time and space complexity?", "level": "Intermediate" },
+    { "question": "What is dynamic programming? How does it differ from simple recursion?", "level": "Intermediate" },
+    { "question": "Explain Dijkstra's algorithm. What is its time complexity and what type of graphs can it not handle?", "level": "Intermediate" },
+    { "question": "What is the difference between a greedy algorithm and dynamic programming? Give an example where greedy fails but DP succeeds.", "level": "Advanced" },
+    { "question": "Explain the concept of NP-completeness. Why is the P vs NP problem significant?", "level": "Advanced" }
+  ],
+  "Operating Systems": [
+    { "question": "What is the difference between a process and a thread?", "level": "Beginner" },
+    { "question": "What is virtual memory and why is it used?", "level": "Beginner" },
+    { "question": "Explain the four conditions required for deadlock to occur (Coffman conditions).", "level": "Intermediate" },
+    { "question": "What is the difference between preemptive and non-preemptive scheduling? Give an example of each.", "level": "Intermediate" },
+    { "question": "Explain how paging works in memory management. What problem does it solve and what overhead does it introduce?", "level": "Intermediate" },
+    { "question": "What is thrashing in an operating system and how can it be prevented?", "level": "Advanced" },
+    { "question": "Explain the difference between internal and external fragmentation. Which does paging cause and why?", "level": "Advanced" }
+  ],
+  "Computer Networks": [
+    { "question": "What is the difference between TCP and UDP? When would you use each?", "level": "Beginner" },
+    { "question": "What happens step by step when you type a URL into your browser and press Enter?", "level": "Beginner" },
+    { "question": "Explain the OSI model. What are the seven layers and what does each do?", "level": "Intermediate" },
+    { "question": "What is the difference between a router and a switch?", "level": "Intermediate" },
+    { "question": "How does the TCP three-way handshake work? Why is it needed?", "level": "Intermediate" },
+    { "question": "Explain how DNS works. What happens when a DNS record is not found in the local cache?", "level": "Advanced" },
+    { "question": "What is the difference between symmetric and asymmetric encryption in the context of HTTPS/TLS?", "level": "Advanced" }
+  ],
+  "Databases": [
+    { "question": "What is the difference between a primary key and a foreign key?", "level": "Beginner" },
+    { "question": "What are the four ACID properties of a database transaction?", "level": "Beginner" },
+    { "question": "What is database normalization? Explain 1NF, 2NF, and 3NF.", "level": "Intermediate" },
+    { "question": "What is an index in a database and how does it improve query performance? What are the tradeoffs?", "level": "Intermediate" },
+    { "question": "Explain the difference between INNER JOIN, LEFT JOIN, and FULL OUTER JOIN.", "level": "Intermediate" },
+    { "question": "What is the difference between optimistic and pessimistic concurrency control?", "level": "Advanced" },
+    { "question": "Explain the CAP theorem. What does it mean for a distributed database to be consistent, available, or partition-tolerant?", "level": "Advanced" }
+  ],
+  "OOP": [
+    { "question": "What are the four pillars of Object-Oriented Programming?", "level": "Beginner" },
+    { "question": "What is the difference between a class and an object?", "level": "Beginner" },
+    { "question": "What is the difference between method overloading and method overriding?", "level": "Intermediate" },
+    { "question": "Explain the concept of abstraction in OOP. How is it different from encapsulation?", "level": "Intermediate" },
+    { "question": "What is the Liskov Substitution Principle? Give an example of a violation.", "level": "Advanced" },
+    { "question": "Explain the difference between composition and inheritance. When would you prefer composition over inheritance?", "level": "Advanced" },
+    { "question": "What is the difference between an abstract class and an interface? When would you use each?", "level": "Intermediate" }
+  ],
+  "Software Engineering": [
+    { "question": "What is the difference between unit testing and integration testing?", "level": "Beginner" },
+    { "question": "What does SOLID stand for in software design principles?", "level": "Beginner" },
+    { "question": "What is the difference between Agile and Waterfall development methodologies?", "level": "Intermediate" },
+    { "question": "Explain what a design pattern is. Describe the Singleton pattern and a scenario where it is useful.", "level": "Intermediate" },
+    { "question": "What is technical debt? How does it accumulate and what are strategies to manage it?", "level": "Intermediate" },
+    { "question": "Explain the Observer design pattern. Where is it commonly used?", "level": "Advanced" },
+    { "question": "What is the difference between coupling and cohesion? Why is high cohesion and low coupling desirable?", "level": "Advanced" }
+  ],
+  "Discrete Math": [
+    { "question": "What is the difference between a permutation and a combination? Give an example of each.", "level": "Beginner" },
+    { "question": "What is a function in set theory? What does it mean for a function to be injective, surjective, and bijective?", "level": "Intermediate" },
+    { "question": "Explain proof by mathematical induction with an example.", "level": "Intermediate" },
+    { "question": "What is Big-O notation and how is it used to compare algorithm efficiency?", "level": "Beginner" },
+    { "question": "What is a graph in discrete mathematics? Define the terms: vertex, edge, path, cycle, and connected graph.", "level": "Intermediate" }
+  ],
+  "Computer Architecture": [
+    { "question": "What is the difference between RISC and CISC processor architectures?", "level": "Intermediate" },
+    { "question": "Explain the fetch-decode-execute cycle of a CPU.", "level": "Beginner" },
+    { "question": "What is pipelining in a CPU? What is a pipeline hazard?", "level": "Intermediate" },
+    { "question": "What is the difference between Von Neumann and Harvard architectures?", "level": "Intermediate" },
+    { "question": "Explain cache coherence. Why is it a challenge in multi-core processors?", "level": "Advanced" }
+  ],
+  "Programming Languages": [
+    { "question": "What is the difference between compiled and interpreted languages? Give examples of each.", "level": "Beginner" },
+    { "question": "What is a closure in programming? Give an example.", "level": "Intermediate" },
+    { "question": "What is the difference between static typing and dynamic typing?", "level": "Beginner" },
+    { "question": "What is garbage collection? How does a mark-and-sweep algorithm work?", "level": "Intermediate" },
+    { "question": "Explain the difference between call-by-value and call-by-reference parameter passing.", "level": "Intermediate" }
+  ]
+}
