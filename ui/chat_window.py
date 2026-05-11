@@ -12,6 +12,7 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 import time
 
 import core.inference as inference
+import core.language_detector as lang_detector
 
 # ── Figma values (same across all screens) ───────────────────────────────────
 BG_DARK    = "#0F172B"
@@ -90,6 +91,7 @@ class ChatWindow(QWidget):
         self.email = email
         self.conversation_history: list = []
         self._worker: InferenceWorker | None = None
+        self._urdu_mode: bool = False
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self.setStyleSheet(f"background-color: {BG_DARK};")
         self._build()
@@ -299,6 +301,7 @@ class ChatWindow(QWidget):
 
         lay = QHBoxLayout(hdr)
         lay.setContentsMargins(24, 0, 24, 0)
+        lay.setSpacing(12)
 
         title = QLabel("Chat with Aristotle")
         title.setStyleSheet(f"""
@@ -308,6 +311,13 @@ class ChatWindow(QWidget):
             font-weight: 700;
             background: transparent;
         """)
+
+        # Urdu language toggle
+        self._lang_toggle = QPushButton("اردو")
+        self._lang_toggle.setFixedSize(56, 30)
+        self._lang_toggle.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._lang_toggle.setStyleSheet(self._urdu_btn_style(active=False))
+        self._lang_toggle.clicked.connect(self._toggle_urdu)
 
         self._status_lbl = QLabel("Ready")
         self._status_lbl.setStyleSheet(f"""
@@ -319,8 +329,44 @@ class ChatWindow(QWidget):
 
         lay.addWidget(title)
         lay.addStretch()
+        lay.addWidget(self._lang_toggle)
         lay.addWidget(self._status_lbl)
         return hdr
+
+    def _urdu_btn_style(self, active: bool) -> str:
+        if active:
+            return f"""
+                QPushButton {{
+                    background-color: {BLUE};
+                    color: {WHITE};
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 13px;
+                }}
+                QPushButton:hover {{ background-color: #1a67ff; }}
+            """
+        return f"""
+            QPushButton {{
+                background-color: transparent;
+                color: {MUTED};
+                border: 0.667px solid {BORDER};
+                border-radius: 8px;
+                font-size: 13px;
+            }}
+            QPushButton:hover {{
+                color: {LABEL};
+                border-color: {LABEL};
+            }}
+        """
+
+    def _toggle_urdu(self):
+        self._set_urdu_mode(not self._urdu_mode)
+        mode = "Urdu" if self._urdu_mode else "English"
+        self._add_system_msg(f"Switched to {mode} mode")
+
+    def _set_urdu_mode(self, enabled: bool):
+        self._urdu_mode = enabled
+        self._lang_toggle.setStyleSheet(self._urdu_btn_style(active=enabled))
 
     def _build_messages_area(self) -> QScrollArea:
         self._scroll = QScrollArea()
@@ -456,6 +502,11 @@ class ChatWindow(QWidget):
         if not text or self._worker is not None:
             return
 
+        # Auto-detect Urdu script and enable mode if needed
+        if not self._urdu_mode and lang_detector.contains_urdu(text):
+            self._set_urdu_mode(True)
+            self._add_system_msg("Urdu detected — switched to Urdu mode")
+
         self._input.clear()
         self._input.setEnabled(False)
         self._send_btn.setEnabled(False)
@@ -464,7 +515,15 @@ class ChatWindow(QWidget):
         self._add_bubble(text, is_user=True)
         self.conversation_history.append({"role": "user", "content": text})
 
-        self._worker = InferenceWorker(text, self.conversation_history)
+        # Prepend language instruction when Urdu mode is on
+        prompt = text
+        if self._urdu_mode:
+            prompt = (
+                "[Respond in Urdu. Keep CS technical terms in English if no "
+                "Urdu equivalent exists.] " + text
+            )
+
+        self._worker = InferenceWorker(prompt, self.conversation_history)
         self._worker.response_ready.connect(self._on_response)
         self._worker.start()
 
