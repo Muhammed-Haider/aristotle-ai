@@ -1,0 +1,82 @@
+{
+  "stack": {
+    "keywords": ["stack", "lifo", "last in first out", "push pop"],
+    "analogy": "A stack is like a pile of plates — you can only add or remove from the top. The last plate placed is the first one taken off (LIFO). push() adds a plate on top; pop() removes the top plate."
+  },
+  "queue": {
+    "keywords": ["queue", "fifo", "first in first out", "enqueue", "dequeue"],
+    "analogy": "A queue is like a line at a ticket counter — the first person to join is the first to be served (FIFO). enqueue() joins the back of the line; dequeue() serves the person at the front."
+  },
+  "linked list": {
+    "keywords": ["linked list", "linked-list", "singly linked", "doubly linked", "node pointer"],
+    "analogy": "A linked list is like a treasure hunt — each clue tells you exactly where to find the next clue. Each node holds data and a pointer to the next node. There is no shortcut to clue 7; you must follow the chain from clue 1."
+  },
+  "binary search": {
+    "keywords": ["binary search", "binary search algorithm", "bisect"],
+    "analogy": "Binary search is like finding a word in a dictionary. Open to the middle — if your word comes before the middle word, ignore the right half; if after, ignore the left half. Repeat. You eliminate half the remaining pages every step."
+  },
+  "recursion": {
+    "keywords": ["recursion", "recursive", "base case", "call stack overflow"],
+    "analogy": "Recursion is like Russian nesting dolls. To open the outermost doll you open the next smaller one inside it, and the one inside that, until you reach the tiniest doll (the base case). Then the results bubble back out layer by layer."
+  },
+  "pointer": {
+    "keywords": ["pointer", "memory address", "dereference", "null pointer"],
+    "analogy": "A pointer is like a sticky note with a street address written on it. The note is not the house — it just tells you where the house is. Dereferencing means physically going to that address to find the actual data. A null pointer is a note with no address — following it leads nowhere."
+  },
+  "ram": {
+    "keywords": ["ram", "random access memory", "working memory", "heap memory"],
+    "analogy": "RAM is like your desk workspace. It is fast to reach anything on the desk, but space is limited. When you close an application, it is like clearing those papers off the desk. More RAM means a bigger desk — you can have more things open at once without slowing down."
+  },
+  "hard drive": {
+    "keywords": ["hard drive", "hard disk", "storage", "ssd", "disk"],
+    "analogy": "A hard drive is like a filing cabinet. It holds far more than your desk (RAM), but retrieving a file takes longer because you have to walk over and search through the drawers. SSDs are faster filing cabinets — still slower than your desk, but much quicker than old spinning-disk cabinets."
+  },
+  "cpu": {
+    "keywords": ["cpu", "processor", "central processing unit", "clock speed", "cores"],
+    "analogy": "A CPU is like a chef. It reads the recipe (your code) one instruction at a time and executes it. A faster CPU is a faster chef. Multiple cores are multiple chefs working in the same kitchen — parallel tasks finish sooner, but they must coordinate so they do not reach for the same ingredient simultaneously."
+  },
+  "cache": {
+    "keywords": ["cache memory", "l1 cache", "l2 cache", "cpu cache", "cache hit", "cache miss"],
+    "analogy": "CPU cache is like the chef's prep counter — the most frequently needed ingredients sit right there within arm's reach. RAM is the pantry across the room. A cache hit means the ingredient was already on the counter; a cache miss means a trip to the pantry."
+  },
+  "deadlock": {
+    "keywords": ["deadlock", "dead lock", "circular wait", "mutual exclusion deadlock"],
+    "analogy": "Deadlock is like two cars meeting on a single-lane bridge from opposite ends. Car A refuses to reverse until Car B moves; Car B refuses to reverse until Car A moves. Neither can proceed. Both wait forever."
+  },
+  "mutex": {
+    "keywords": ["mutex", "lock", "semaphore", "mutual exclusion", "synchronization"],
+    "analogy": "A mutex is like a single bathroom key hanging in an office. Only the person holding the key can use the bathroom. Others wait outside. When the key is returned, the next person takes it. This prevents two threads from modifying shared data at the same time."
+  },
+  "inheritance": {
+    "keywords": ["inheritance", "subclass", "superclass", "base class", "derived class", "extends"],
+    "analogy": "Inheritance is like a child inheriting traits from a parent. A Dog class inherits from Animal — it automatically gets eat() and sleep() without rewriting them. The child can also add its own behaviours (bark()) or override inherited ones."
+  },
+  "polymorphism": {
+    "keywords": ["polymorphism", "method overriding", "overloading", "runtime polymorphism"],
+    "analogy": "Polymorphism is like a universal remote that sends a 'play' command. A TV plays video, a speaker plays audio, a game console plays a game — each device responds to the same command differently. In code, calling draw() on a Shape works whether the shape is a Circle, Square, or Triangle."
+  },
+  "hash table": {
+    "keywords": ["hash table", "hash map", "dictionary", "hashing", "hash function", "collision"],
+    "analogy": "A hash table is like a library with a smart index. You give the librarian a title (key); the hash function converts it to a shelf number (index) in an instant. Retrieving the book is O(1) — no searching needed. A collision is when two different titles map to the same shelf; the librarian handles it by placing both books there with labels."
+  },
+  "binary tree": {
+    "keywords": ["binary tree", "bst", "binary search tree", "tree traversal", "root node"],
+    "analogy": "A binary tree is like a company org chart where every manager has at most two direct reports. The CEO is the root. To find an employee you start at the top and go left or right based on alphabetical order — in a BST this guarantees you find anyone in O(log n) steps."
+  },
+  "sorting": {
+    "keywords": ["sorting algorithm", "bubble sort", "merge sort", "quick sort", "insertion sort"],
+    "analogy": "Sorting is like organising books on a shelf alphabetically. Bubble sort is swapping adjacent books repeatedly until order emerges — slow but simple. Merge sort splits the shelf in half, sorts each half separately, then merges them back — faster but needs temporary space. Quick sort picks a pivot book and puts everything smaller to its left and larger to its right, then repeats."
+  },
+  "encryption": {
+    "keywords": ["encryption", "decryption", "cipher", "aes", "rsa", "cryptography"],
+    "analogy": "Encryption is like sending a letter in a padlocked box. Only the recipient has the key to open it. Even if someone intercepts the box, they cannot read the letter without the key. AES is a symmetric lock — sender and receiver share the same key. RSA is an asymmetric lock — you have a public padlock anyone can use to lock the box, but only your private key can open it."
+  },
+  "api": {
+    "keywords": ["api", "rest api", "application programming interface", "endpoint", "http request"],
+    "analogy": "An API is like a restaurant menu. You do not need to know how the kitchen works — you just order from the menu (make a request) and the kitchen returns your dish (the response). The menu defines what you can order (endpoints), the format to order in (request structure), and what you will receive (response format)."
+  },
+  "thread": {
+    "keywords": ["thread", "multithreading", "concurrency", "race condition", "context switch"],
+    "analogy": "Threads are like multiple cooks in the same kitchen. They share the same space and ingredients (memory), so they can work in parallel and finish meals faster. But if two cooks both grab the last egg at the same time (race condition), the dish goes wrong. They need to communicate — hence mutexes and locks."
+  }
+}

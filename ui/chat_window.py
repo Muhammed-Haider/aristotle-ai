@@ -13,6 +13,7 @@ import time
 
 import core.inference as inference
 import core.language_detector as lang_detector
+import cache.ghost_model as ghost_model
 
 # ── Figma values (same across all screens) ───────────────────────────────────
 BG_DARK    = "#0F172B"
@@ -508,6 +509,17 @@ class ChatWindow(QWidget):
             self._add_system_msg("Urdu detected — switched to Urdu mode")
 
         self._input.clear()
+
+        # Ghost model: instant cache lookup before touching the LLM
+        cached = ghost_model.lookup(text)
+        if cached:
+            self._add_bubble(text, is_user=True)
+            self.conversation_history.append({"role": "user", "content": text})
+            self._add_bubble(cached, is_user=False)
+            self.conversation_history.append({"role": "assistant", "content": cached})
+            self._status_lbl.setText("Answered from analogy glossary")
+            return
+
         self._input.setEnabled(False)
         self._send_btn.setEnabled(False)
         self._status_lbl.setText("Thinking...")
