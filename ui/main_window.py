@@ -1,124 +1,117 @@
 """
 Main Window - Aristotle AI
-==========================
-Application main window that manages screen transitions.
-Login -> Chat workflow
+Manages all screen transitions across the full app flow.
 """
 
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QMessageBox
 from PyQt6.QtCore import QThread, pyqtSignal
+
+from ui.home_screen import HomeScreen
 from ui.login_screen import LoginScreen
+from ui.register_screen import RegisterScreen
+from ui.forgot_password_screen import ForgotPasswordScreen
 from ui.chat_window import ChatWindow
 import core.inference as inference
 
 
 class ModelLoaderThread(QThread):
-    """Background thread for loading the AI model."""
-    load_complete = pyqtSignal(bool)  # success/failure
+    load_complete = pyqtSignal(bool)
 
     def run(self):
-        """Load model in background."""
-        success = inference.load_model()
-        self.load_complete.emit(success)
+        self.load_complete.emit(inference.load_model())
 
 
 class MainWindow(QMainWindow):
-    """
-    Main application window.
-    Manages transitions between login and chat screens.
-    """
 
     def __init__(self):
         super().__init__()
-        self.current_username = None
-        self.model_loader = None
-        self.init_ui()
-        self.load_model_async()
-
-    def init_ui(self):
-        """Initialize the main window UI."""
         self.setWindowTitle("Aristotle AI")
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(1024, 700)
+        self._model_loader = None
 
-        # Stacked widget to switch between screens
-        self.stacked_widget = QStackedWidget()
-        self.setCentralWidget(self.stacked_widget)
+        self.stack = QStackedWidget()
+        self.setCentralWidget(self.stack)
 
-        # Create login screen
-        self.login_screen = LoginScreen()
-        self.login_screen.login_successful.connect(self.on_login_success)
-        self.stacked_widget.addWidget(self.login_screen)
+        self._build_home()
+        self.center()
+        self._load_model_async()
 
-        # Chat window will be created after login
-        self.chat_window = None
+    # ------------------------------------------------------------------  screens
 
-        # Show login screen
-        self.stacked_widget.setCurrentWidget(self.login_screen)
+    def _build_home(self):
+        self.home = HomeScreen()
+        self.home.go_to_login.connect(self._show_login)
+        self.home.go_to_register.connect(self._show_register)
+        self.stack.addWidget(self.home)
+        self.stack.setCurrentWidget(self.home)
 
-        # Center window on screen
-        self.center_on_screen()
+    def _show_login(self):
+        if not hasattr(self, "_login_screen"):
+            self._login_screen = LoginScreen()
+            self._login_screen.login_successful.connect(self._on_login)
+            self._login_screen.go_to_register.connect(self._show_register)
+            self._login_screen.go_to_home.connect(
+                lambda: self.stack.setCurrentWidget(self.home)
+            )
+            self._login_screen.go_to_forgot.connect(self._show_forgot)
+            self.stack.addWidget(self._login_screen)
+        self.stack.setCurrentWidget(self._login_screen)
 
-    def center_on_screen(self):
-        """Center the window on the screen."""
-        screen = self.screen().geometry()
-        window_geometry = self.frameGeometry()
-        center_point = screen.center()
-        window_geometry.moveCenter(center_point)
-        self.move(window_geometry.topLeft())
+    def _show_register(self):
+        if not hasattr(self, "_register_screen"):
+            self._register_screen = RegisterScreen()
+            self._register_screen.register_ok.connect(self._on_login)
+            self._register_screen.go_to_login.connect(self._show_login)
+            self._register_screen.go_to_home.connect(
+                lambda: self.stack.setCurrentWidget(self.home)
+            )
+            self.stack.addWidget(self._register_screen)
+        self.stack.setCurrentWidget(self._register_screen)
 
-    def load_model_async(self):
-        """Load the AI model in background thread."""
+    def _show_forgot(self):
+        if not hasattr(self, "_forgot_screen"):
+            self._forgot_screen = ForgotPasswordScreen()
+            self._forgot_screen.go_to_login.connect(self._show_login)
+            self._forgot_screen.go_to_home.connect(
+                lambda: self.stack.setCurrentWidget(self.home)
+            )
+            self.stack.addWidget(self._forgot_screen)
+        self.stack.setCurrentWidget(self._forgot_screen)
+
+    def _on_login(self, username: str):
+        self._open_chat(username)
+
+    def _open_chat(self, username: str):
+        chat = ChatWindow(username)
+        self.stack.addWidget(chat)
+        self.stack.setCurrentWidget(chat)
+        self.statusBar().showMessage(f"Welcome, {username}!", 3000)
+
+    # ------------------------------------------------------------------  helpers
+
+    def center(self):
+        geo = self.screen().geometry()
+        self.move(
+            (geo.width()  - self.width())  // 2,
+            (geo.height() - self.height()) // 2,
+        )
+
+    def _load_model_async(self):
         self.statusBar().showMessage("Loading AI model...")
+        self._model_loader = ModelLoaderThread()
+        self._model_loader.load_complete.connect(self._on_model_loaded)
+        self._model_loader.start()
 
-        self.model_loader = ModelLoaderThread()
-        self.model_loader.load_complete.connect(self.on_model_loaded)
-        self.model_loader.start()
-
-    def on_model_loaded(self, success: bool):
-        """Handle model loading completion."""
+    def _on_model_loaded(self, success: bool):
         if success:
             self.statusBar().showMessage("AI model ready!", 3000)
         else:
-            self.statusBar().showMessage("Warning: Model failed to load", 5000)
-            QMessageBox.warning(
-                self,
-                "Model Load Error",
-                "Failed to load the AI model. Please check:\n"
-                "1. Model file exists at ./models/model.gguf\n"
-                "2. Model file is a valid GGUF format\n\n"
-                "You can still use the app, but responses may not work."
-            )
-
-    def on_login_success(self, username: str):
-        """
-        Handle successful login.
-        Transition from login screen to chat window.
-        """
-        self.current_username = username
-
-        # Create chat window
-        self.chat_window = ChatWindow(username)
-        self.stacked_widget.addWidget(self.chat_window)
-
-        # Switch to chat window
-        self.stacked_widget.setCurrentWidget(self.chat_window)
-
-        # Update status
-        self.statusBar().showMessage(f"Welcome, {username}!", 3000)
+            self.statusBar().showMessage("Warning: model failed to load", 5000)
 
     def closeEvent(self, event):
-        """Handle application close event."""
         reply = QMessageBox.question(
-            self,
-            "Exit Aristotle AI",
-            "Are you sure you want to exit?",
+            self, "Exit Aristotle AI", "Are you sure you want to exit?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
-
-        if reply == QMessageBox.StandardButton.Yes:
-            # Clean up (unload model, save session, etc.)
-            self.statusBar().showMessage("Shutting down...")
-            event.accept()
-        else:
-            event.ignore()
+        event.accept() if reply == QMessageBox.StandardButton.Yes else event.ignore()

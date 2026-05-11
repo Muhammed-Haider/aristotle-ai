@@ -1,12 +1,12 @@
 """
-Login Screen - Aristotle AI
-Split layout: left branding panel + right login form.
+Register Screen - Aristotle AI
+Split layout: left branding panel + right registration form.
 Exact colours and spacing from Figma CSS.
 """
 
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel,
-    QLineEdit, QPushButton, QCheckBox
+    QLineEdit, QPushButton
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 
@@ -37,36 +37,15 @@ _INPUT_STYLE = f"""
     }}
     QLineEdit:focus {{
         border: 1px solid {BLUE_LIGHT};
-    }}
-"""
-
-_CHECK_STYLE = f"""
-    QCheckBox {{
-        color: {SUBTITLE};
-        font-family: {FONT};
-        font-size: 16px;
-        background: transparent;
-        spacing: 8px;
-    }}
-    QCheckBox::indicator {{
-        width: 13px;
-        height: 13px;
-        border: 1px solid {INPUT_BORDER};
-        border-radius: 3px;
-        background: {BG_INPUT};
-    }}
-    QCheckBox::indicator:checked {{
-        background: {BLUE};
-        border-color: {BLUE};
+        outline: none;
     }}
 """
 
 
-class LoginScreen(QWidget):
-    login_successful  = pyqtSignal(str)   # emits email on success
-    go_to_register    = pyqtSignal()
-    go_to_home        = pyqtSignal()
-    go_to_forgot      = pyqtSignal()
+class RegisterScreen(QWidget):
+    go_to_login  = pyqtSignal()
+    go_to_home   = pyqtSignal()
+    register_ok  = pyqtSignal(str)   # emits email on success
 
     def __init__(self):
         super().__init__()
@@ -83,7 +62,7 @@ class LoginScreen(QWidget):
         root.addWidget(self._left_panel(),  stretch=50)
         root.addWidget(self._right_panel(), stretch=50)
 
-    # ──────────────────────────────────────────────── left branding panel ──
+    # ─────────────────────────────────────────────────── left branding panel ──
 
     def _left_panel(self) -> QWidget:
         panel = QWidget()
@@ -159,9 +138,9 @@ class LoginScreen(QWidget):
         lay.setSpacing(0)
 
         # ── Header ──
-        h_title = self._lbl("Welcome Back", 30, WHITE)
+        h_title = self._lbl("Create Account", 30, WHITE)
         h_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        h_sub = self._lbl("Sign in to continue your progress", 16, SUBTITLE)
+        h_sub = self._lbl("Start your learning journey today", 16, SUBTITLE)
         h_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         lay.addWidget(h_title)
@@ -169,49 +148,22 @@ class LoginScreen(QWidget):
         lay.addWidget(h_sub)
         lay.addSpacing(32)
 
-        # ── Fields — Email + Password ──
-        self._email_w = self._field("Email",    "you@example.com", False)
-        self._pass_w  = self._field("Password", "••••••••",        True)
+        # ── Fields ──
+        self._email_w   = self._field("Email",            "you@example.com", False)
+        self._pass_w    = self._field("Password",         "••••••••",        True)
+        self._confirm_w = self._field("Confirm Password", "••••••••",        True)
 
-        lay.addWidget(self._email_w)
-        lay.addSpacing(16)
-        lay.addWidget(self._pass_w)
-        lay.addSpacing(16)
+        for w in [self._email_w, self._pass_w, self._confirm_w]:
+            lay.addWidget(w)
+            lay.addSpacing(16)
 
-        # ── Remember me / Forgot password row ──
-        mid_row = QHBoxLayout()
-        mid_row.setContentsMargins(0, 0, 0, 0)
+        lay.addSpacing(4)
 
-        self._remember = QCheckBox("Remember me")
-        self._remember.setStyleSheet(_CHECK_STYLE)
-
-        forgot = QPushButton("Forgot password?")
-        forgot.setFlat(True)
-        forgot.setCursor(Qt.CursorShape.PointingHandCursor)
-        forgot.setStyleSheet(f"""
-            QPushButton {{
-                color: {BLUE_LIGHT};
-                font-family: {FONT};
-                font-size: 16px;
-                background: transparent;
-                border: none;
-                padding: 0;
-            }}
-            QPushButton:hover {{ text-decoration: underline; }}
-        """)
-        forgot.clicked.connect(self.go_to_forgot)
-
-        mid_row.addWidget(self._remember)
-        mid_row.addStretch()
-        mid_row.addWidget(forgot)
-        lay.addLayout(mid_row)
-        lay.addSpacing(16)
-
-        # ── Sign In button — full width, 36px, #155DFC ──
-        self._sign_in_btn = QPushButton("Sign In")
-        self._sign_in_btn.setFixedHeight(36)
-        self._sign_in_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._sign_in_btn.setStyleSheet(f"""
+        # ── Create Account button — full width 36px tall, #155DFC ──
+        self._create_btn = QPushButton("Create Account")
+        self._create_btn.setFixedHeight(36)
+        self._create_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._create_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {BLUE};
                 color: {WHITE};
@@ -223,20 +175,20 @@ class LoginScreen(QWidget):
             QPushButton:hover   {{ background-color: #1a67ff; }}
             QPushButton:pressed {{ background-color: #1050d0; }}
         """)
-        self._sign_in_btn.clicked.connect(self._on_login)
-        lay.addWidget(self._sign_in_btn)
+        self._create_btn.clicked.connect(self._on_register)
+        lay.addWidget(self._create_btn)
         lay.addSpacing(16)
 
-        # ── "Don't have an account? Sign Up" ──
+        # ── "Already have an account? Sign In" ──
         sign_row = QHBoxLayout()
         sign_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sign_row.setSpacing(4)
 
-        no_account = self._lbl("Don't have an account?", 14, SUBTITLE)
-        sign_up = QPushButton("Sign Up")
-        sign_up.setFlat(True)
-        sign_up.setCursor(Qt.CursorShape.PointingHandCursor)
-        sign_up.setStyleSheet(f"""
+        already = self._lbl("Already have an account?", 14, SUBTITLE)
+        sign_in = QPushButton("Sign In")
+        sign_in.setFlat(True)
+        sign_in.setCursor(Qt.CursorShape.PointingHandCursor)
+        sign_in.setStyleSheet(f"""
             QPushButton {{
                 color: {BLUE_LIGHT};
                 font-family: {FONT};
@@ -247,10 +199,9 @@ class LoginScreen(QWidget):
             }}
             QPushButton:hover {{ text-decoration: underline; }}
         """)
-        sign_up.clicked.connect(self.go_to_register)
-
-        sign_row.addWidget(no_account)
-        sign_row.addWidget(sign_up)
+        sign_in.clicked.connect(self.go_to_login)
+        sign_row.addWidget(already)
+        sign_row.addWidget(sign_in)
         lay.addLayout(sign_row)
 
         # ── Error label ──
@@ -294,6 +245,7 @@ class LoginScreen(QWidget):
         return lbl
 
     def _field(self, label_text: str, placeholder: str, secret: bool) -> QWidget:
+        """Label + QLineEdit pair styled to Figma spec."""
         container = QWidget()
         container.setStyleSheet("background: transparent;")
         lay = QVBoxLayout(container)
@@ -319,17 +271,18 @@ class LoginScreen(QWidget):
     def _get_text(self, field_widget: QWidget) -> str:
         return field_widget.findChild(QLineEdit).text()
 
-    def _on_login(self):
+    def _on_register(self):
         self._error.setText("")
         email    = self._get_text(self._email_w).strip()
         password = self._get_text(self._pass_w)
+        confirm  = self._get_text(self._confirm_w)
 
-        if not email or not password:
-            self._error.setText("Please enter your email and password")
+        if password != confirm:
+            self._error.setText("Passwords do not match")
             return
 
-        success, msg = auth.login(email, password)
+        success, msg = auth.register(email, password)
         if success:
-            self.login_successful.emit(email)
+            self.register_ok.emit(email)
         else:
             self._error.setText(msg)

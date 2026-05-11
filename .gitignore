@@ -32,8 +32,7 @@ secrets.yaml
 config.local.json
 
 # === User Data (Privacy) ===
-data/sessions/
-data/user_data/
+data/
 *.encrypted
 *.session
 

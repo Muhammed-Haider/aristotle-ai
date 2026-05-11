@@ -1,19 +1,20 @@
 """
-Login Screen - Aristotle AI
-Split layout: left branding panel + right login form.
-Exact colours and spacing from Figma CSS.
+Forgot Password Screen - Aristotle AI
+Split layout matching Figma CSS exactly.
+Offline: stores a reset token locally instead of sending email.
 """
 
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel,
-    QLineEdit, QPushButton, QCheckBox
+    QLineEdit, QPushButton
 )
 from PyQt6.QtCore import Qt, pyqtSignal
+import json, secrets
+from pathlib import Path
 
-import auth.auth_manager as auth
-
-# ── Exact Figma values ────────────────────────────────────────────────────────
+# ── Figma values (shared with Login/Register) ─────────────────────────────────
 BG_DARK      = "#0F172B"
+BG_ICON      = "#1D293D"     # icon box bg — dark, NOT blue
 BG_INPUT     = "#1D293D"
 INPUT_BORDER = "#314158"
 BLUE         = "#155DFC"
@@ -40,33 +41,10 @@ _INPUT_STYLE = f"""
     }}
 """
 
-_CHECK_STYLE = f"""
-    QCheckBox {{
-        color: {SUBTITLE};
-        font-family: {FONT};
-        font-size: 16px;
-        background: transparent;
-        spacing: 8px;
-    }}
-    QCheckBox::indicator {{
-        width: 13px;
-        height: 13px;
-        border: 1px solid {INPUT_BORDER};
-        border-radius: 3px;
-        background: {BG_INPUT};
-    }}
-    QCheckBox::indicator:checked {{
-        background: {BLUE};
-        border-color: {BLUE};
-    }}
-"""
 
-
-class LoginScreen(QWidget):
-    login_successful  = pyqtSignal(str)   # emits email on success
-    go_to_register    = pyqtSignal()
-    go_to_home        = pyqtSignal()
-    go_to_forgot      = pyqtSignal()
+class ForgotPasswordScreen(QWidget):
+    go_to_login = pyqtSignal()
+    go_to_home  = pyqtSignal()
 
     def __init__(self):
         super().__init__()
@@ -83,7 +61,7 @@ class LoginScreen(QWidget):
         root.addWidget(self._left_panel(),  stretch=50)
         root.addWidget(self._right_panel(), stretch=50)
 
-    # ──────────────────────────────────────────────── left branding panel ──
+    # ──────────────────────────────────────── left panel — "Need Help?" ──
 
     def _left_panel(self) -> QWidget:
         panel = QWidget()
@@ -110,10 +88,9 @@ class LoginScreen(QWidget):
         icon.setStyleSheet("color: white; font-size: 30px; background: transparent;")
         logo_lay.addWidget(icon)
 
-        # "Welcome to Aristotle" — Arimo 36px #FFFFFF
-        title = QLabel("Welcome to Aristotle")
+        # "Need Help?" — Arimo 36px #FFFFFF
+        title = QLabel("Need Help?")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title.setWordWrap(True)
         title.setStyleSheet(f"""
             color: {WHITE};
             font-family: {FONT};
@@ -123,7 +100,10 @@ class LoginScreen(QWidget):
         """)
 
         # Subtitle — Arimo 18px #BEDBFF
-        sub = QLabel("Learn with Reason. Your AI-powered\nstudy companion for smarter learning.")
+        sub = QLabel(
+            "Don't worry! We'll send you a secure link to reset\n"
+            "your password and get you back to learning."
+        )
         sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sub.setWordWrap(True)
         sub.setStyleSheet(f"""
@@ -139,7 +119,7 @@ class LoginScreen(QWidget):
         lay.addWidget(sub)
         return panel
 
-    # ──────────────────────────────────────────────────── right form panel ──
+    # ───────────────────────────────────────────────── right form panel ──
 
     def _right_panel(self) -> QWidget:
         panel = QWidget()
@@ -149,7 +129,6 @@ class LoginScreen(QWidget):
         outer.setAlignment(Qt.AlignmentFlag.AlignCenter)
         outer.setContentsMargins(0, 0, 0, 0)
 
-        # Content column — 424px wide (≈ Figma 423.67px)
         col = QWidget()
         col.setFixedWidth(424)
         col.setStyleSheet("background: transparent;")
@@ -158,85 +137,77 @@ class LoginScreen(QWidget):
         lay.setContentsMargins(0, 16, 0, 16)
         lay.setSpacing(0)
 
-        # ── Header ──
-        h_title = self._lbl("Welcome Back", 30, WHITE)
-        h_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        h_sub = self._lbl("Sign in to continue your progress", 16, SUBTITLE)
-        h_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # ── Email icon — 64×64, #1D293D, border-radius 14px ──
+        icon_box = QWidget()
+        icon_box.setFixedSize(64, 64)
+        icon_box.setStyleSheet(f"background-color: {BG_ICON}; border-radius: 14px;")
+        icon_inner = QVBoxLayout(icon_box)
+        icon_inner.setContentsMargins(0, 0, 0, 0)
+        envelope = QLabel("✉")
+        envelope.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        envelope.setStyleSheet(f"color: {BLUE_LIGHT}; font-size: 26px; background: transparent;")
+        icon_inner.addWidget(envelope)
+        lay.addWidget(icon_box, alignment=Qt.AlignmentFlag.AlignHCenter)
+        lay.addSpacing(16)
 
+        # ── "Forgot Password" — 30px ──
+        h_title = self._lbl("Forgot Password", 30, WHITE)
+        h_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.addWidget(h_title)
-        lay.addSpacing(8)
+        lay.addSpacing(12)
+
+        # ── Subtitle ──
+        h_sub = QLabel(
+            "Enter your email and we'll send you instructions\n"
+            "to reset your password"
+        )
+        h_sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        h_sub.setWordWrap(True)
+        h_sub.setStyleSheet(f"""
+            color: {SUBTITLE};
+            font-family: {FONT};
+            font-size: 16px;
+            line-height: 24px;
+            background: transparent;
+        """)
         lay.addWidget(h_sub)
         lay.addSpacing(32)
 
-        # ── Fields — Email + Password ──
-        self._email_w = self._field("Email",    "you@example.com", False)
-        self._pass_w  = self._field("Password", "••••••••",        True)
-
+        # ── Email field ──
+        self._email_w = self._field("Email Address", "you@example.com")
         lay.addWidget(self._email_w)
         lay.addSpacing(16)
-        lay.addWidget(self._pass_w)
-        lay.addSpacing(16)
 
-        # ── Remember me / Forgot password row ──
-        mid_row = QHBoxLayout()
-        mid_row.setContentsMargins(0, 0, 0, 0)
-
-        self._remember = QCheckBox("Remember me")
-        self._remember.setStyleSheet(_CHECK_STYLE)
-
-        forgot = QPushButton("Forgot password?")
-        forgot.setFlat(True)
-        forgot.setCursor(Qt.CursorShape.PointingHandCursor)
-        forgot.setStyleSheet(f"""
-            QPushButton {{
-                color: {BLUE_LIGHT};
-                font-family: {FONT};
-                font-size: 16px;
-                background: transparent;
-                border: none;
-                padding: 0;
-            }}
-            QPushButton:hover {{ text-decoration: underline; }}
-        """)
-        forgot.clicked.connect(self.go_to_forgot)
-
-        mid_row.addWidget(self._remember)
-        mid_row.addStretch()
-        mid_row.addWidget(forgot)
-        lay.addLayout(mid_row)
-        lay.addSpacing(16)
-
-        # ── Sign In button — full width, 36px, #155DFC ──
-        self._sign_in_btn = QPushButton("Sign In")
-        self._sign_in_btn.setFixedHeight(36)
-        self._sign_in_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._sign_in_btn.setStyleSheet(f"""
+        # ── Send Reset Link — 48px tall (Figma), full width ──
+        self._send_btn = QPushButton("Send Reset Link")
+        self._send_btn.setFixedHeight(48)
+        self._send_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._send_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {BLUE};
                 color: {WHITE};
                 border: none;
                 border-radius: 14px;
                 font-family: {FONT};
-                font-size: 14px;
+                font-size: 16px;
             }}
             QPushButton:hover   {{ background-color: #1a67ff; }}
             QPushButton:pressed {{ background-color: #1050d0; }}
         """)
-        self._sign_in_btn.clicked.connect(self._on_login)
-        lay.addWidget(self._sign_in_btn)
+        self._send_btn.clicked.connect(self._on_send)
+        lay.addWidget(self._send_btn)
         lay.addSpacing(16)
 
-        # ── "Don't have an account? Sign Up" ──
+        # ── "Remember your password? Back to Sign In" ──
         sign_row = QHBoxLayout()
         sign_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
         sign_row.setSpacing(4)
 
-        no_account = self._lbl("Don't have an account?", 14, SUBTITLE)
-        sign_up = QPushButton("Sign Up")
-        sign_up.setFlat(True)
-        sign_up.setCursor(Qt.CursorShape.PointingHandCursor)
-        sign_up.setStyleSheet(f"""
+        remember = self._lbl("Remember your password?", 14, SUBTITLE)
+        back_sign = QPushButton("Back to Sign In")
+        back_sign.setFlat(True)
+        back_sign.setCursor(Qt.CursorShape.PointingHandCursor)
+        back_sign.setStyleSheet(f"""
             QPushButton {{
                 color: {BLUE_LIGHT};
                 font-family: {FONT};
@@ -247,19 +218,18 @@ class LoginScreen(QWidget):
             }}
             QPushButton:hover {{ text-decoration: underline; }}
         """)
-        sign_up.clicked.connect(self.go_to_register)
-
-        sign_row.addWidget(no_account)
-        sign_row.addWidget(sign_up)
+        back_sign.clicked.connect(self.go_to_login)
+        sign_row.addWidget(remember)
+        sign_row.addWidget(back_sign)
         lay.addLayout(sign_row)
 
-        # ── Error label ──
-        self._error = QLabel("")
-        self._error.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._error.setWordWrap(True)
-        self._error.setStyleSheet("color: #ff4d4d; font-size: 13px; background: transparent;")
+        # ── Status/error message ──
+        self._status = QLabel("")
+        self._status.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._status.setWordWrap(True)
+        self._status.setStyleSheet("font-size: 13px; background: transparent;")
         lay.addSpacing(8)
-        lay.addWidget(self._error)
+        lay.addWidget(self._status)
 
         lay.addStretch()
 
@@ -293,7 +263,7 @@ class LoginScreen(QWidget):
         )
         return lbl
 
-    def _field(self, label_text: str, placeholder: str, secret: bool) -> QWidget:
+    def _field(self, label_text: str, placeholder: str) -> QWidget:
         container = QWidget()
         container.setStyleSheet("background: transparent;")
         lay = QVBoxLayout(container)
@@ -305,31 +275,43 @@ class LoginScreen(QWidget):
             f"color: {LABEL_COLOR}; font-family: {FONT}; font-size: 14px; background: transparent;"
         )
 
-        inp = QLineEdit()
-        inp.setPlaceholderText(placeholder)
-        inp.setFixedHeight(48)
-        inp.setStyleSheet(_INPUT_STYLE)
-        if secret:
-            inp.setEchoMode(QLineEdit.EchoMode.Password)
+        self._email_inp = QLineEdit()
+        self._email_inp.setPlaceholderText(placeholder)
+        self._email_inp.setFixedHeight(48)
+        self._email_inp.setStyleSheet(_INPUT_STYLE)
 
         lay.addWidget(label)
-        lay.addWidget(inp)
+        lay.addWidget(self._email_inp)
         return container
 
-    def _get_text(self, field_widget: QWidget) -> str:
-        return field_widget.findChild(QLineEdit).text()
+    def _on_send(self):
+        """Store a reset token locally (offline — no actual email sent)."""
+        self._status.setText("")
+        email = self._email_inp.text().strip().lower()
 
-    def _on_login(self):
-        self._error.setText("")
-        email    = self._get_text(self._email_w).strip()
-        password = self._get_text(self._pass_w)
-
-        if not email or not password:
-            self._error.setText("Please enter your email and password")
+        if not email or "@" not in email:
+            self._status.setStyleSheet("color: #ff4d4d; font-size: 13px; background: transparent;")
+            self._status.setText("Enter a valid email address")
             return
 
-        success, msg = auth.login(email, password)
-        if success:
-            self.login_successful.emit(email)
-        else:
-            self._error.setText(msg)
+        # Check user exists
+        users_file = Path("./data/users.json")
+        if users_file.exists():
+            with open(users_file, "r") as f:
+                users = json.load(f)
+            if email not in users:
+                # Don't reveal whether email exists — show same success message
+                pass
+            else:
+                token = secrets.token_urlsafe(32)
+                users[email]["reset_token"] = token
+                with open(users_file, "w") as f:
+                    json.dump(users, f, indent=2)
+
+        # Always show success (security best practice)
+        self._status.setStyleSheet("color: #4ade80; font-size: 13px; background: transparent;")
+        self._status.setText(
+            "If an account exists for that email, a reset link has been saved locally.\n"
+            "Use the token in data/users.json to reset your password."
+        )
+        self._send_btn.setEnabled(False)

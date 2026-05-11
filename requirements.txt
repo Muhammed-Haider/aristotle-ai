@@ -11,7 +11,7 @@ PyQt6>=6.6.0
 psutil>=5.9.0
 
 # Future dependencies (commented out until needed)
-# bcrypt>=4.1.0             # Phase 3 - Auth
+bcrypt>=4.1.0               # Phase 3 - Auth
 # argon2-cffi>=23.1.0       # Phase 3 - Auth (alternative)
 # cryptography>=41.0.0      # Phase 4 - Mastery Passport encryption
 # PyYAML>=6.0.1             # Phase 2 - Ghost Model cache
