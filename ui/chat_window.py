@@ -6,7 +6,7 @@ Dark theme matching Figma design system.
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QScrollArea, QFrame, QSizePolicy
+    QLineEdit, QScrollArea, QFrame, QSizePolicy, QStackedWidget
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 import time
@@ -97,11 +97,20 @@ class ChatWindow(QWidget):
     # ─────────────────────────────────────────────────────────── layout ──
 
     def _build(self):
+        from ui.quiz_panel import QuizPanel
+        from ui.progress_panel import ProgressPanel
+
+        self._right_stack = QStackedWidget()
+        self._right_stack.setStyleSheet(f"background-color: {BG_DARK};")
+        self._right_stack.addWidget(self._build_chat_panel())   # index 0
+        self._right_stack.addWidget(QuizPanel(self.email))      # index 1
+        self._right_stack.addWidget(ProgressPanel(self.email))  # index 2
+
         root = QHBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
         root.addWidget(self._build_sidebar(), stretch=0)
-        root.addWidget(self._build_chat_panel(), stretch=1)
+        root.addWidget(self._right_stack, stretch=1)
 
     # ──────────────────────────────────────────────────────── sidebar ──
 
@@ -168,18 +177,26 @@ class ChatWindow(QWidget):
         lay.setSpacing(4)
         lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        for icon, label, active in [
-            ("✦", "Chat",     True),
-            ("◎", "Quiz",     False),
-            ("◈", "Progress", False),
-        ]:
+        self._nav_buttons: list[QPushButton] = []
+        for i, (icon, label) in enumerate([
+            ("✦", "Chat"),
+            ("◎", "Quiz"),
+            ("◈", "Progress"),
+        ]):
             btn = QPushButton(f"  {icon}   {label}")
             btn.setFixedHeight(40)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.setStyleSheet(self._nav_style(active))
+            btn.setStyleSheet(self._nav_style(active=(i == 0)))
+            btn.clicked.connect(lambda _, idx=i: self._switch_panel(idx))
+            self._nav_buttons.append(btn)
             lay.addWidget(btn)
 
         return nav
+
+    def _switch_panel(self, index: int):
+        self._right_stack.setCurrentIndex(index)
+        for i, btn in enumerate(self._nav_buttons):
+            btn.setStyleSheet(self._nav_style(active=(i == index)))
 
     def _nav_style(self, active: bool) -> str:
         if active:
