@@ -10,8 +10,10 @@ from ui.home_screen import HomeScreen
 from ui.login_screen import LoginScreen
 from ui.register_screen import RegisterScreen
 from ui.forgot_password_screen import ForgotPasswordScreen
+from ui.onboarding_screen import OnboardingScreen
 from ui.chat_window import ChatWindow
 import core.inference as inference
+import auth.auth_manager as auth
 
 
 class ModelLoaderThread(QThread):
@@ -78,14 +80,35 @@ class MainWindow(QMainWindow):
             self.stack.addWidget(self._forgot_screen)
         self.stack.setCurrentWidget(self._forgot_screen)
 
-    def _on_login(self, username: str):
-        self._open_chat(username)
+    def _on_login(self, email: str):
+        if auth.is_onboarding_done(email):
+            self._open_chat(email)
+        else:
+            self._show_onboarding(email)
 
-    def _open_chat(self, username: str):
-        chat = ChatWindow(username)
+    def _show_onboarding(self, email: str):
+        onboarding = OnboardingScreen(email)
+        onboarding.onboarding_complete.connect(
+            lambda profile: self._on_onboarding_done(email, profile)
+        )
+        self.stack.addWidget(onboarding)
+        self.stack.setCurrentWidget(onboarding)
+
+    def _on_onboarding_done(self, email: str, profile: dict):
+        auth.save_profile(email, profile)
+        auth.mark_onboarding_done(email)
+        self._open_chat(email)
+
+    def _open_chat(self, email: str):
+        chat = ChatWindow(email)
+        chat.logout_requested.connect(self._on_logout)
         self.stack.addWidget(chat)
         self.stack.setCurrentWidget(chat)
-        self.statusBar().showMessage(f"Welcome, {username}!", 3000)
+        self.statusBar().showMessage("Welcome!", 3000)
+
+    def _on_logout(self):
+        auth.clear_session()
+        self.stack.setCurrentWidget(self.home)
 
     # ------------------------------------------------------------------  helpers
 

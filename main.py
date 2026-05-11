@@ -1,3 +1,5 @@
+
+
 #!/usr/bin/env python3
 """
 Aristotle AI - Main Application Entry Point
@@ -34,8 +36,8 @@ def show_model_missing_dialog():
     msg.setInformativeText(
         "The application needs a GGUF model file to work.\n\n"
         "Please download a model and place it at:\n"
-        "./models/model_new.gguf\n\n"
-        "Recommended: TinyLlama Q4_K_M (~650 MB)\n"
+        "./models/model.gguf\n\n"
+        "Recommended: TinyLlama Q2_K (~400 MB)\n"
         "Download from: https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF\n\n"
         "Continue anyway?"
     )
