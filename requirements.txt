@@ -15,4 +15,4 @@ bcrypt>=4.1.0               # Phase 3 - Auth
 # argon2-cffi>=23.1.0       # Phase 3 - Auth (alternative)
 # cryptography>=41.0.0      # Phase 4 - Mastery Passport encryption
 # PyYAML>=6.0.1             # Phase 2 - Ghost Model cache
-# PyInstaller>=6.3.0        # Phase 9 - Packaging
+PyInstaller>=6.3.0           # Phase 9 - Packaging

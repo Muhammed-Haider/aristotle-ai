@@ -15,6 +15,7 @@ As per CONSTITUTION.md:
 """
 
 import sys
+import os
 from pathlib import Path
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from PyQt6.QtCore import Qt
@@ -50,6 +51,11 @@ def show_model_missing_dialog():
 
 def main():
     """Main application entry point."""
+    # When frozen by PyInstaller, chdir to the exe folder so all relative
+    # paths (./data/, ./cache/, ./models/) resolve correctly.
+    if getattr(sys, "frozen", False):
+        os.chdir(os.path.dirname(sys.executable))
+
     # Create Qt application
     app = QApplication(sys.argv)
     app.setApplicationName("Aristotle AI")
