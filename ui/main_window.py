@@ -12,7 +12,9 @@ from ui.register_screen import RegisterScreen
 from ui.forgot_password_screen import ForgotPasswordScreen
 from ui.onboarding_screen import OnboardingScreen
 from ui.chat_window import ChatWindow
+from ui.benchmark_screen import BenchmarkScreen
 import core.inference as inference
+import core.benchmark as benchmark
 import auth.auth_manager as auth
 
 
@@ -34,11 +36,25 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
 
-        self._build_home()
+        if benchmark.is_first_launch():
+            self._build_benchmark()
+        else:
+            self._build_home()
+
         self.center()
         self._load_model_async()
 
     # ------------------------------------------------------------------  screens
+
+    def _build_benchmark(self):
+        self._benchmark_screen = BenchmarkScreen()
+        self._benchmark_screen.benchmark_complete.connect(self._on_benchmark_done)
+        self.stack.addWidget(self._benchmark_screen)
+        self.stack.setCurrentWidget(self._benchmark_screen)
+
+    def _on_benchmark_done(self):
+        self._build_home()
+        self.stack.setCurrentWidget(self.home)
 
     def _build_home(self):
         self.home = HomeScreen()

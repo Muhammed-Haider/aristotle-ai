@@ -144,12 +144,14 @@ class ChatWindow(QWidget):
     def _build(self):
         from ui.quiz_panel import QuizPanel
         from ui.progress_panel import ProgressPanel
+        from ui.settings_panel import SettingsPanel
 
         self._right_stack = QStackedWidget()
         self._right_stack.setStyleSheet(f"background-color: {BG_DARK};")
         self._right_stack.addWidget(self._build_chat_panel())   # index 0
         self._right_stack.addWidget(QuizPanel(self.email))      # index 1
         self._right_stack.addWidget(ProgressPanel(self.email))  # index 2
+        self._right_stack.addWidget(SettingsPanel(self.email))  # index 3
 
         root = QHBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -227,6 +229,7 @@ class ChatWindow(QWidget):
             ("✦", "Chat"),
             ("◎", "Quiz"),
             ("◈", "Progress"),
+            ("⚙", "Settings"),
         ]):
             btn = QPushButton(f"  {icon}   {label}")
             btn.setFixedHeight(40)
