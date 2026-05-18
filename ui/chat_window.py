@@ -53,7 +53,6 @@ class _MessageBubble(QFrame):
     def __init__(self, text: str, is_user: bool):
         super().__init__()
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         if is_user:
             self.setStyleSheet(f"""
@@ -78,7 +77,6 @@ class _MessageBubble(QFrame):
 
         lbl = QLabel(text)
         lbl.setWordWrap(True)
-        lbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         lbl.setStyleSheet(f"""
             color: {WHITE if is_user else TEXT_MAIN};
@@ -98,7 +96,6 @@ class _StreamingBubble(QFrame):
         self._text = ""
         self._cursor_on = True
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.setStyleSheet(f"""
             _StreamingBubble {{
                 background-color: {BG_PANEL};
@@ -112,7 +109,6 @@ class _StreamingBubble(QFrame):
 
         self._lbl = QLabel("")
         self._lbl.setWordWrap(True)
-        self._lbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self._lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self._lbl.setStyleSheet(f"""
             color: {TEXT_MAIN};
@@ -541,33 +537,34 @@ class ChatWindow(QWidget):
 
     def _add_bubble(self, text: str, is_user: bool):
         bubble = _MessageBubble(text, is_user)
+        # Cap width: user bubbles narrower, AI bubbles wider
+        bubble.setMaximumWidth(520 if is_user else 720)
 
         wrapper = QWidget()
         wrapper.setStyleSheet("background: transparent;")
         w_lay = QHBoxLayout(wrapper)
         w_lay.setContentsMargins(0, 0, 0, 0)
-        w_lay.setSpacing(0)
 
         if is_user:
-            w_lay.addStretch(30)        # 30% left spacer
-            w_lay.addWidget(bubble, 70) # 70% bubble
+            w_lay.addStretch()
+            w_lay.addWidget(bubble)
         else:
-            w_lay.addWidget(bubble, 82) # 82% bubble
-            w_lay.addStretch(18)        # 18% right spacer
+            w_lay.addWidget(bubble)
+            w_lay.addStretch()
 
         self._msgs_lay.insertWidget(self._msgs_lay.count() - 1, wrapper)
         self._scroll_to_bottom()
 
     def _start_streaming_bubble(self) -> _StreamingBubble:
         bubble = _StreamingBubble()
+        bubble.setMaximumWidth(720)
 
         wrapper = QWidget()
         wrapper.setStyleSheet("background: transparent;")
         w_lay = QHBoxLayout(wrapper)
         w_lay.setContentsMargins(0, 0, 0, 0)
-        w_lay.setSpacing(0)
-        w_lay.addWidget(bubble, 82)
-        w_lay.addStretch(18)
+        w_lay.addWidget(bubble)
+        w_lay.addStretch()
 
         self._msgs_lay.insertWidget(self._msgs_lay.count() - 1, wrapper)
         self._scroll_to_bottom()
