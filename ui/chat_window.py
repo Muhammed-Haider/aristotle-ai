@@ -592,8 +592,11 @@ class ChatWindow(QWidget):
         prompt = text
         if self._urdu_mode:
             prompt = (
-                "[Respond in Urdu. Keep CS technical terms in English if no "
-                "Urdu equivalent exists.] " + text
+                "[IMPORTANT: Respond ONLY in Urdu language. "
+                "Use Arabic/Nastaliq script (right-to-left) — the same script as this word: اردو. "
+                "Do NOT use Hindi or Devanagari script (do not write ह, क, म etc.). "
+                "Keep CS technical terms such as array, pointer, function, class, loop in English. "
+                "Write everything else in Urdu Arabic script.] " + text
             )
 
         self._worker = InferenceWorker(prompt, self.conversation_history)
