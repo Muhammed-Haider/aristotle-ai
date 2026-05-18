@@ -40,6 +40,7 @@ class MainWindow(QMainWindow):
             self._build_benchmark()
         else:
             self._build_home()
+            self._restore_session()
 
         self.center()
         self._load_model_async()
@@ -54,7 +55,7 @@ class MainWindow(QMainWindow):
 
     def _on_benchmark_done(self):
         self._build_home()
-        self.stack.setCurrentWidget(self.home)
+        self._restore_session()
 
     def _build_home(self):
         self.home = HomeScreen()
@@ -121,6 +122,12 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(chat)
         self.stack.setCurrentWidget(chat)
         self.statusBar().showMessage("Welcome!", 3000)
+
+    def _restore_session(self):
+        """Auto-login if a valid session exists from a previous run."""
+        saved = auth.get_session()
+        if saved and auth.user_exists(saved):
+            self._on_login(saved)
 
     def _on_logout(self):
         auth.clear_session()

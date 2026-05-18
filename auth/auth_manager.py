@@ -123,6 +123,10 @@ def _save_session(email: str) -> None:
         json.dump({"email": email, "logged_in_at": datetime.utcnow().isoformat()}, f)
 
 
+def user_exists(email: str) -> bool:
+    return email.strip().lower() in _load_users()
+
+
 def get_session() -> str | None:
     """Return the logged-in email if a session exists, else None."""
     if not SESSION_FILE.exists():
