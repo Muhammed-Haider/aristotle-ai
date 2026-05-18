@@ -53,12 +53,13 @@ class _MessageBubble(QFrame):
     def __init__(self, text: str, is_user: bool):
         super().__init__()
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
         if is_user:
             self.setStyleSheet(f"""
                 _MessageBubble {{
                     background-color: {BLUE};
-                    border-radius: 12px;
+                    border-radius: 16px;
                     border-bottom-right-radius: 4px;
                 }}
             """)
@@ -67,58 +68,79 @@ class _MessageBubble(QFrame):
                 _MessageBubble {{
                     background-color: {BG_PANEL};
                     border: 0.667px solid {BORDER};
-                    border-radius: 12px;
+                    border-radius: 16px;
                     border-bottom-left-radius: 4px;
                 }}
             """)
 
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(14, 10, 14, 10)
+        lay.setContentsMargins(18, 13, 18, 13)
 
         lbl = QLabel(text)
         lbl.setWordWrap(True)
+        lbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         lbl.setStyleSheet(f"""
             color: {WHITE if is_user else TEXT_MAIN};
             font-family: {FONT};
-            font-size: 14px;
-            line-height: 22px;
+            font-size: 15px;
+            line-height: 26px;
             background: transparent;
         """)
         lay.addWidget(lbl)
 
 
 class _StreamingBubble(QFrame):
-    """AI bubble that fills token-by-token during streaming."""
+    """AI bubble that fills token-by-token with a blinking cursor."""
 
     def __init__(self):
         super().__init__()
         self._text = ""
+        self._cursor_on = True
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         self.setStyleSheet(f"""
             _StreamingBubble {{
                 background-color: {BG_PANEL};
                 border: 0.667px solid {BORDER};
-                border-radius: 12px;
+                border-radius: 16px;
                 border-bottom-left-radius: 4px;
             }}
         """)
         lay = QVBoxLayout(self)
-        lay.setContentsMargins(14, 10, 14, 10)
+        lay.setContentsMargins(18, 13, 18, 13)
+
         self._lbl = QLabel("")
         self._lbl.setWordWrap(True)
+        self._lbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self._lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         self._lbl.setStyleSheet(f"""
             color: {TEXT_MAIN};
             font-family: {FONT};
-            font-size: 14px;
-            line-height: 22px;
+            font-size: 15px;
+            line-height: 26px;
             background: transparent;
         """)
         lay.addWidget(self._lbl)
 
+        self._cursor_timer = QTimer()
+        self._cursor_timer.timeout.connect(self._blink)
+        self._cursor_timer.start(500)
+
+    def _blink(self):
+        self._cursor_on = not self._cursor_on
+        self._render()
+
+    def _render(self):
+        cursor = "▋" if self._cursor_on else " "
+        self._lbl.setText(self._text + cursor)
+
     def append_token(self, token: str):
         self._text += token
+        self._render()
+
+    def finalize(self):
+        self._cursor_timer.stop()
         self._lbl.setText(self._text)
 
     def get_text(self) -> str:
@@ -437,8 +459,8 @@ class ChatWindow(QWidget):
         self._msgs_container = QWidget()
         self._msgs_container.setStyleSheet(f"background-color: {BG_DARK};")
         self._msgs_lay = QVBoxLayout(self._msgs_container)
-        self._msgs_lay.setContentsMargins(24, 24, 24, 24)
-        self._msgs_lay.setSpacing(16)
+        self._msgs_lay.setContentsMargins(28, 28, 28, 28)
+        self._msgs_lay.setSpacing(12)
         self._msgs_lay.addStretch()
 
         self._scroll.setWidget(self._msgs_container)
@@ -519,40 +541,43 @@ class ChatWindow(QWidget):
 
     def _add_bubble(self, text: str, is_user: bool):
         bubble = _MessageBubble(text, is_user)
-        bubble.setMaximumWidth(600)
 
         wrapper = QWidget()
         wrapper.setStyleSheet("background: transparent;")
         w_lay = QHBoxLayout(wrapper)
         w_lay.setContentsMargins(0, 0, 0, 0)
+        w_lay.setSpacing(0)
 
         if is_user:
-            w_lay.addStretch()
-            w_lay.addWidget(bubble)
+            w_lay.addStretch(30)        # 30% left spacer
+            w_lay.addWidget(bubble, 70) # 70% bubble
         else:
-            w_lay.addWidget(bubble)
-            w_lay.addStretch()
+            w_lay.addWidget(bubble, 82) # 82% bubble
+            w_lay.addStretch(18)        # 18% right spacer
 
         self._msgs_lay.insertWidget(self._msgs_lay.count() - 1, wrapper)
         self._scroll_to_bottom()
 
     def _start_streaming_bubble(self) -> _StreamingBubble:
         bubble = _StreamingBubble()
-        bubble.setMaximumWidth(600)
+
         wrapper = QWidget()
         wrapper.setStyleSheet("background: transparent;")
         w_lay = QHBoxLayout(wrapper)
         w_lay.setContentsMargins(0, 0, 0, 0)
-        w_lay.addWidget(bubble)
-        w_lay.addStretch()
+        w_lay.setSpacing(0)
+        w_lay.addWidget(bubble, 82)
+        w_lay.addStretch(18)
+
         self._msgs_lay.insertWidget(self._msgs_lay.count() - 1, wrapper)
         self._scroll_to_bottom()
         return bubble
 
     def _scroll_to_bottom(self):
-        QTimer.singleShot(50, lambda: self._scroll.verticalScrollBar().setValue(
-            self._scroll.verticalScrollBar().maximum()
-        ))
+        bar = self._scroll.verticalScrollBar()
+        # Only auto-scroll if user is already near the bottom (within 120px)
+        if bar.maximum() - bar.value() < 120 or bar.maximum() == 0:
+            QTimer.singleShot(40, lambda: bar.setValue(bar.maximum()))
 
     # ──────────────────────────────────────────────── send / receive ──
 
@@ -587,6 +612,7 @@ class ChatWindow(QWidget):
 
         # Create streaming bubble now so tokens fill it as they arrive
         self._streaming_bubble = self._start_streaming_bubble()
+        self._force_scroll_bottom()
 
         # When Urdu mode is on, seed the history with a Urdu example exchange
         # so the model follows the pattern rather than being told in English.
@@ -611,8 +637,15 @@ class ChatWindow(QWidget):
             self._streaming_bubble.append_token(token)
             self._scroll_to_bottom()
 
+    def _force_scroll_bottom(self):
+        QTimer.singleShot(60, lambda: self._scroll.verticalScrollBar().setValue(
+            self._scroll.verticalScrollBar().maximum()
+        ))
+
     def _on_stream_done(self, full_text: str, elapsed: float):
         self.conversation_history.append({"role": "assistant", "content": full_text})
+        if self._streaming_bubble:
+            self._streaming_bubble.finalize()
         self._streaming_bubble = None
         self._worker = None
         self._input.setEnabled(True)
