@@ -588,16 +588,20 @@ class ChatWindow(QWidget):
         # Create streaming bubble now so tokens fill it as they arrive
         self._streaming_bubble = self._start_streaming_bubble()
 
-        # Prepend language instruction when Urdu mode is on
-        prompt = text
+        # When Urdu mode is on, seed the history with a Urdu example exchange
+        # so the model follows the pattern rather than being told in English.
         if self._urdu_mode:
-            prompt = (
-                "[Reply in Urdu using Arabic script only. "
-                "Do not use Hindi or Devanagari script. "
-                "Keep CS terms like array, pointer, function in English.] " + text
-            )
+            urdu_seed = [
+                {"role": "user",      "content": "کیا آپ اردو میں جواب دے سکتے ہیں؟"},
+                {"role": "assistant", "content": "جی ہاں، میں اردو میں جواب دیتا ہوں۔ CS کی technical terms جیسے array، pointer، function انگریزی میں رہیں گی۔"},
+            ]
+            history_for_model = urdu_seed + self.conversation_history
+            prompt = "اردو میں جواب دیں: " + text
+        else:
+            history_for_model = self.conversation_history
+            prompt = text
 
-        self._worker = InferenceWorker(prompt, self.conversation_history)
+        self._worker = InferenceWorker(prompt, history_for_model)
         self._worker.token_received.connect(self._on_token)
         self._worker.stream_done.connect(self._on_stream_done)
         self._worker.start()
