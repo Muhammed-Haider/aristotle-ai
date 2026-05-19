@@ -21,9 +21,9 @@ const QUICK_ACTIONS = [
 ];
 
 const UPCOMING = [
-  { subject: "Physics", topic: "Quantum Mechanics", due: "2 days", urgent: true },
-  { subject: "Mathematics", topic: "Calculus II", due: "4 days", urgent: false },
-  { subject: "Chemistry", topic: "Organic Reactions", due: "1 week", urgent: false },
+  { subject: "DSA", topic: "Graph Algorithms", due: "2 days", urgent: true },
+  { subject: "OS", topic: "Process Scheduling", due: "4 days", urgent: false },
+  { subject: "Networks", topic: "TCP/IP Model", due: "1 week", urgent: false },
 ];
 
 export default function DashboardScreen({ user, onNavigate, onFocus }: Props) {

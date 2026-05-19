@@ -14,10 +14,12 @@ const WEEKLY = [
 ];
 
 const SUBJECTS_DATA = [
-  { name: "Physics", pct: 65, color: "#2563eb" },
-  { name: "Mathematics", pct: 48, color: "#7c3aed" },
-  { name: "Chemistry", pct: 72, color: "#16a34a" },
-  { name: "Biology", pct: 34, color: "#ea580c" },
+  { name: "Data Structures & Algorithms", pct: 65, color: "#2563eb" },
+  { name: "Operating Systems", pct: 48, color: "#7c3aed" },
+  { name: "Computer Networks", pct: 72, color: "#16a34a" },
+  { name: "Database Systems", pct: 34, color: "#ea580c" },
+  { name: "OOP", pct: 80, color: "#0891b2" },
+  { name: "Theory of Computation", pct: 29, color: "#be185d" },
 ];
 
 export default function ProgressScreen() {
@@ -109,7 +111,7 @@ export default function ProgressScreen() {
       {/* subjects progress */}
       <div className="card p-5 mb-6">
         <h3 className="text-white font-semibold mb-4">Subject Mastery</h3>
-        <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+        <div className="grid grid-cols-3 gap-x-8 gap-y-4">
           {SUBJECTS_DATA.map(({ name, pct, color }) => (
             <div key={name}>
               <div className="flex justify-between mb-1.5">

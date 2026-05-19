@@ -2,24 +2,19 @@ import { useState, useEffect } from "react";
 
 const QUESTIONS = [
   {
-    q: "What is the De Broglie wavelength formula?",
-    opts: ["λ = h/p", "λ = h×p", "λ = p/h", "λ = h/mv²"],
-    answer: 0,
-  },
-  {
-    q: "Which principle states that you cannot simultaneously know both the exact position and momentum of a particle?",
-    opts: ["Pauli Exclusion Principle", "Heisenberg Uncertainty Principle", "Schrödinger Equation", "Bohr Model"],
+    q: "What is the time complexity of binary search on a sorted array?",
+    opts: ["O(n)", "O(log n)", "O(n log n)", "O(1)"],
     answer: 1,
   },
   {
-    q: "What does wave-particle duality state?",
-    opts: [
-      "Matter can only behave as a wave",
-      "Light can only behave as a particle",
-      "Quantum objects exhibit both wave and particle properties",
-      "Waves and particles are distinct phenomena",
-    ],
+    q: "Which data structure uses LIFO (Last In, First Out) order?",
+    opts: ["Queue", "Linked List", "Stack", "Heap"],
     answer: 2,
+  },
+  {
+    q: "In Dijkstra's algorithm, which data structure gives the best time complexity?",
+    opts: ["Simple array", "Binary heap (priority queue)", "Linked list", "Stack"],
+    answer: 1,
   },
 ];
 
@@ -61,7 +56,7 @@ export default function PracticeScreen() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Practice Quiz</h1>
-          <p className="text-[#8899b0] text-sm mt-0.5">Physics - Quantum Mechanics</p>
+          <p className="text-[#8899b0] text-sm mt-0.5">DSA - Graph Algorithms</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-[#131c2e] border border-[#1e2a3e] px-4 py-2 rounded-lg">

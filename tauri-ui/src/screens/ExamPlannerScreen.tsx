@@ -1,13 +1,13 @@
 import { useState } from "react";
 
 const EXAMS = [
-  { name: "Physics Final", date: "Dec 28, 2024", days: 9, prep: 65, topics: 18, color: "#dc2626" },
-  { name: "Mathematics Midterm", date: "Jan 4, 2025", days: 17, prep: 42, topics: 10, color: "#ea580c" },
-  { name: "Chemistry Exam", date: "Jan 11, 2025", days: 24, prep: 28, topics: 24, color: "#2563eb" },
+  { name: "DSA Final", date: "Dec 28, 2024", days: 9, prep: 65, topics: 18, color: "#dc2626" },
+  { name: "OS Midterm", date: "Jan 4, 2025", days: 17, prep: 42, topics: 10, color: "#ea580c" },
+  { name: "Networks Exam", date: "Jan 11, 2025", days: 24, prep: 28, topics: 24, color: "#2563eb" },
 ];
 
 const TIMELINE: { week: string; tasks: string[] }[] = [
-  { week: "This Week", tasks: ["Complete Quantum Mechanics", "Practice 20 problems", "Review formulas"] },
+  { week: "This Week", tasks: ["Complete Graph Algorithms", "Practice 20 DSA problems", "Review Big-O notation"] },
   { week: "Next Week", tasks: ["Thermodynamics review", "Past papers", "Mock exam"] },
   { week: "Week 3", tasks: ["Final revision", "Weak areas focus", "Quick reviews"] },
 ];
@@ -62,7 +62,7 @@ export default function ExamPlannerScreen() {
               <div>
                 <label className="text-xs text-[#8899b0] mb-1.5 block">Exam Name</label>
                 <input value={examName} onChange={e => setExamName(e.target.value)}
-                  placeholder="e.g. Biology Final" className="input-field text-sm py-2" />
+                  placeholder="e.g. DSA Final" className="input-field text-sm py-2" />
               </div>
               <div>
                 <label className="text-xs text-[#8899b0] mb-1.5 block">Exam Date</label>
@@ -127,7 +127,7 @@ export default function ExamPlannerScreen() {
           <div className="card p-4">
             <h4 className="text-white font-semibold text-sm mb-2">Recommendation</h4>
             <p className="text-[#8899b0] text-xs leading-relaxed">
-              Physics exam in 9 days. Focus 40% of your daily time on Thermodynamics and Wave Motion.
+              DSA exam in 9 days. Focus 40% of your daily time on Graph Algorithms and Dynamic Programming.
             </p>
           </div>
 

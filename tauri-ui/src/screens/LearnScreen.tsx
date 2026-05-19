@@ -4,7 +4,20 @@ import { streamChat } from "../api";
 interface Message { role: "user" | "assistant"; content: string; }
 interface Props { user: { email: string; name: string }; }
 
-const SUBJECTS = ["Physics - Quantum Mechanics", "Mathematics - Calculus II", "Chemistry - Organic Chemistry", "Biology - Cell Biology"];
+const SUBJECTS = [
+  "DSA - Graph Algorithms",
+  "DSA - Dynamic Programming",
+  "DSA - Trees & Heaps",
+  "Operating Systems - Process Management",
+  "Operating Systems - Memory Management",
+  "Computer Networks - TCP/IP Model",
+  "Computer Networks - Routing Protocols",
+  "Database Systems - SQL & Normalization",
+  "Database Systems - Transactions & Indexing",
+  "OOP - Design Patterns",
+  "Theory of Computation - Automata",
+  "Compiler Design - Parsing",
+];
 
 export default function LearnScreen({ user }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);

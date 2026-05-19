@@ -10,10 +10,12 @@ interface Subject {
 }
 
 const SUBJECTS: Subject[] = [
-  { name: "Physics", topics: 24, mastery: 65, lastStudied: "2 hours ago", color: "#2563eb", iconBg: "#1e3a6e" },
-  { name: "Mathematics", topics: 32, mastery: 48, lastStudied: "Yesterday", color: "#7c3aed", iconBg: "#2e1065" },
-  { name: "Chemistry", topics: 18, mastery: 72, lastStudied: "3 days ago", color: "#16a34a", iconBg: "#14532d" },
-  { name: "Biology", topics: 28, mastery: 34, lastStudied: "1 week ago", color: "#ea580c", iconBg: "#431407" },
+  { name: "Data Structures & Algorithms", topics: 24, mastery: 65, lastStudied: "2 hours ago", color: "#2563eb", iconBg: "#1e3a6e" },
+  { name: "Operating Systems", topics: 18, mastery: 48, lastStudied: "Yesterday", color: "#7c3aed", iconBg: "#2e1065" },
+  { name: "Computer Networks", topics: 20, mastery: 72, lastStudied: "3 days ago", color: "#16a34a", iconBg: "#14532d" },
+  { name: "Database Systems", topics: 16, mastery: 34, lastStudied: "1 week ago", color: "#ea580c", iconBg: "#431407" },
+  { name: "Object-Oriented Programming", topics: 22, mastery: 80, lastStudied: "Today", color: "#0891b2", iconBg: "#0c4a6e" },
+  { name: "Theory of Computation", topics: 14, mastery: 29, lastStudied: "2 weeks ago", color: "#be185d", iconBg: "#500724" },
 ];
 
 function MasteryBadge({ pct, color }: { pct: number; color: string }) {
@@ -33,6 +35,7 @@ export default function SubjectsScreen() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
+  const CS_SUGGESTIONS = ["Compiler Design", "Software Engineering", "Computer Architecture", "Discrete Mathematics", "Machine Learning", "Web Development"];
 
   const filtered = SUBJECTS.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase())
@@ -61,7 +64,7 @@ export default function SubjectsScreen() {
       </div>
 
       {/* subject grid */}
-      <div className="grid grid-cols-2 gap-5 mb-6">
+      <div className="grid grid-cols-3 gap-5 mb-6">
         {filtered.map((s) => (
           <div key={s.name} className="card p-5">
             <div className="flex items-start justify-between mb-4">
@@ -179,7 +182,15 @@ export default function SubjectsScreen() {
           <div className="card p-6 w-full max-w-sm">
             <h3 className="text-white font-semibold mb-4">Add New Subject</h3>
             <input value={newName} onChange={e => setNewName(e.target.value)}
-              placeholder="Subject name" className="input-field mb-4" />
+              placeholder="e.g. Compiler Design" className="input-field mb-2" />
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {CS_SUGGESTIONS.map(s => (
+                <button key={s} onClick={() => setNewName(s)}
+                  className="px-2 py-1 rounded text-[10px] bg-[#131c2e] border border-[#1e2a3e] text-[#8899b0] hover:text-white hover:border-[#2563eb] transition-all">
+                  {s}
+                </button>
+              ))}
+            </div>
             <div className="flex gap-3">
               <button onClick={() => setShowAdd(false)} className="btn-secondary flex-1">Cancel</button>
               <button onClick={() => setShowAdd(false)} className="btn-primary flex-1">Add Subject</button>
