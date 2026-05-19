@@ -9,6 +9,8 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer
 
+from pathlib import Path
+
 import core.benchmark as benchmark
 
 BG_DARK    = "#0F172B"
@@ -107,6 +109,8 @@ class SettingsPanel(QWidget):
 
         lay.addWidget(self._build_system_card())
         lay.addWidget(_divider())
+        lay.addWidget(self._build_model_file_card())
+        lay.addWidget(_divider())
         lay.addWidget(self._build_tier_card())
         lay.addWidget(_divider())
         lay.addWidget(self._build_language_card())
@@ -149,6 +153,179 @@ class SettingsPanel(QWidget):
             lay.addWidget(note)
 
         return card
+
+    # ──────────────────────────────────────────── model file ──
+
+    def _build_model_file_card(self) -> QWidget:
+        s = benchmark.get_settings()
+        card = QWidget()
+        card.setStyleSheet("background: transparent;")
+        lay = QVBoxLayout(card)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(12)
+        lay.addWidget(_section_label("MODEL FILE"))
+        lay.addWidget(_value_label(
+            "Pick the model to load. Smaller = faster. Larger = smarter.",
+            muted=True,
+        ))
+
+        models = sorted(Path("./models").glob("*.gguf"))
+        current_path = s.get("model_file", "./models/model_new.gguf")
+        current_name = Path(current_path).name
+
+        self._model_cards: dict[str, QFrame] = {}
+        self._selected_model: str = current_name if models else ""
+
+        for model_path in models:
+            name = model_path.name
+            size_mb = model_path.stat().st_size / (1024 * 1024)
+            size_str = f"{size_mb / 1024:.1f} GB" if size_mb >= 1024 else f"{size_mb:.0f} MB"
+            speed_tag, speed_color = ("Fast", "#22C55E") if size_mb < 1000 else ("High Quality", "#F59E0B")
+
+            frame = QFrame()
+            frame.setCursor(Qt.CursorShape.PointingHandCursor)
+            frame.setFixedHeight(72)
+            frame.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+            is_active = (name == current_name)
+            frame.setStyleSheet(self._model_card_style(is_active))
+
+            row = QHBoxLayout(frame)
+            row.setContentsMargins(16, 0, 16, 0)
+            row.setSpacing(14)
+
+            # Radio dot
+            dot = QLabel("●" if is_active else "○")
+            dot.setFixedWidth(16)
+            dot.setStyleSheet(f"""
+                color: {BLUE_LIGHT if is_active else MUTED};
+                font-size: 16px;
+                background: transparent;
+            """)
+            dot.setObjectName("dot")
+
+            # Text block
+            text_col = QVBoxLayout()
+            text_col.setSpacing(3)
+            name_lbl = QLabel(name)
+            name_lbl.setStyleSheet(f"""
+                color: {WHITE if is_active else TEXT_MAIN};
+                font-family: {FONT};
+                font-size: 14px;
+                font-weight: {'600' if is_active else '400'};
+                background: transparent;
+            """)
+            name_lbl.setObjectName("name_lbl")
+            size_lbl = QLabel(size_str)
+            size_lbl.setStyleSheet(f"""
+                color: {MUTED};
+                font-family: {FONT};
+                font-size: 12px;
+                background: transparent;
+            """)
+            text_col.addWidget(name_lbl)
+            text_col.addWidget(size_lbl)
+
+            # Speed badge
+            badge = QLabel(f"  {speed_tag}  ")
+            badge.setFixedHeight(22)
+            badge.setStyleSheet(f"""
+                color: {speed_color};
+                background-color: transparent;
+                border: 1px solid {speed_color};
+                border-radius: 4px;
+                font-family: {FONT};
+                font-size: 11px;
+                font-weight: 600;
+            """)
+
+            row.addWidget(dot)
+            row.addLayout(text_col, stretch=1)
+            row.addWidget(badge)
+
+            frame.mousePressEvent = lambda _, n=name: self._select_model_card(n)
+            self._model_cards[name] = frame
+            lay.addWidget(frame)
+
+        # Apply button
+        apply_row = QHBoxLayout()
+        apply_row.setSpacing(12)
+        apply_row.addStretch()
+
+        self._model_saved_lbl = QLabel("")
+        self._model_saved_lbl.setStyleSheet(f"""
+            color: {GREEN};
+            font-family: {FONT};
+            font-size: 13px;
+            background: transparent;
+        """)
+
+        apply_btn = QPushButton("Apply Model")
+        apply_btn.setFixedSize(120, 38)
+        apply_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        apply_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {BLUE};
+                color: {WHITE};
+                border: none;
+                border-radius: 8px;
+                font-family: {FONT};
+                font-size: 13px;
+                font-weight: 600;
+            }}
+            QPushButton:hover {{ background-color: #1a67ff; }}
+            QPushButton:pressed {{ background-color: #1048c8; }}
+        """)
+        apply_btn.clicked.connect(self._save_model_file)
+
+        apply_row.addWidget(self._model_saved_lbl)
+        apply_row.addWidget(apply_btn)
+        lay.addLayout(apply_row)
+
+        return card
+
+    def _model_card_style(self, active: bool) -> str:
+        if active:
+            return f"""
+                QFrame {{
+                    background-color: rgba(21, 93, 252, 0.12);
+                    border: 1.5px solid {BLUE};
+                    border-radius: 10px;
+                }}
+            """
+        return f"""
+            QFrame {{
+                background-color: {BG_PANEL};
+                border: 1px solid {BORDER};
+                border-radius: 10px;
+            }}
+            QFrame:hover {{
+                border-color: #4a6080;
+                background-color: #232f42;
+            }}
+        """
+
+    def _select_model_card(self, name: str):
+        self._selected_model = name
+        for n, frame in self._model_cards.items():
+            is_active = (n == name)
+            frame.setStyleSheet(self._model_card_style(is_active))
+            dot = frame.findChild(QLabel, "dot")
+            name_lbl = frame.findChild(QLabel, "name_lbl")
+            if dot:
+                dot.setText("●" if is_active else "○")
+                dot.setStyleSheet(f"""
+                    color: {BLUE_LIGHT if is_active else MUTED};
+                    font-size: 16px;
+                    background: transparent;
+                """)
+            if name_lbl:
+                name_lbl.setStyleSheet(f"""
+                    color: {WHITE if is_active else TEXT_MAIN};
+                    font-family: {FONT};
+                    font-size: 14px;
+                    font-weight: {'600' if is_active else '400'};
+                    background: transparent;
+                """)
 
     # ──────────────────────────────────────── model tier override ──
 
@@ -284,6 +461,18 @@ class SettingsPanel(QWidget):
         return card
 
     # ───────────────────────────────────────────────── actions ──
+
+    def _save_model_file(self):
+        import core.inference as inference
+        name = self._selected_model
+        if not name:
+            return
+        path = f"./models/{name}"
+        benchmark.save_setting("model_file", path)
+        self._model_saved_lbl.setText("Reloading model…")
+        inference.reload_model(path)
+        self._model_saved_lbl.setText("Switched!")
+        QTimer.singleShot(2500, lambda: self._model_saved_lbl.setText(""))
 
     def _save_tier(self):
         tier = self._tier_combo.currentText()
