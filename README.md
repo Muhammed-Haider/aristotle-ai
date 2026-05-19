@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**An intelligent, offline AI tutor for Computer Science education**
+**An intelligent, fully offline AI tutor for Computer Science education**
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com/)
@@ -14,81 +14,100 @@
 
 ---
 
-## Overview
+## What is this?
 
-Aristotle AI is a **fully offline desktop application** that uses local LLM inference to teach Computer Science concepts through Socratic dialogue. It runs entirely on your local machine with zero internet dependency after initial setup.
+Aristotle AI is a **fully offline desktop application** that uses a locally running language model to teach Computer Science through Socratic dialogue. It runs entirely on your machine — no internet required after initial setup, no API keys, no subscriptions.
 
-**Key principles:**
-- 100% Offline — works without internet after setup
-- Socratic Method — teaches through guided questioning, not just answers
-- Lightweight — runs on modest hardware (8 GB RAM, Core i5)
-- Privacy-first — all data stays on your machine
-- Free & open source — no subscriptions, no API costs
+**Core principles:**
+- 100% offline after model download
+- Teaches through questions, not just answers (Socratic method)
+- Runs on modest hardware (Core i5, 8 GB RAM)
+- All data stays on your machine (local JSON, no cloud sync)
 
 ---
 
 ## Architecture
 
-The system has two layers:
-
 ```
-┌─────────────────────────────────────────┐
-│          Tauri Desktop Shell            │
-│     React + TypeScript + Tailwind       │
-│  (Dashboard, Chat, Progress, Practice)  │
-└────────────────┬────────────────────────┘
-                 │ HTTP  localhost:5748
-┌────────────────▼────────────────────────┐
-│         FastAPI Backend                 │
-│   llama-cpp-python · LLM Inference      │
-│   Auth · Passport · Quiz Engine         │
-└─────────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│           Tauri Desktop Shell              │
+│      React 19 · TypeScript · Tailwind      │
+│   20 screens: Chat, Progress, Quiz, etc.   │
+└─────────────────┬──────────────────────────┘
+                  │  HTTP  localhost:5748
+┌─────────────────▼──────────────────────────┐
+│          FastAPI Backend (api/server.py)    │
+│                                            │
+│  core/inference.py  ←  llama-cpp-python    │
+│  auth/auth_manager.py  ←  bcrypt           │
+│  cache/ghost_model.py  ←  analogy cache    │
+│  passport/mastery_store.py  ←  progress    │
+│  core/quiz_engine.py  ←  quiz generation   │
+│  core/benchmark.py  ←  hardware detection  │
+└────────────────────────────────────────────┘
 ```
 
-- **Frontend** — Tauri 2 + React 19 + TypeScript + Tailwind CSS desktop app
-- **Backend** — FastAPI server running locally, serving inference over HTTP
-- **Model** — GGUF quantized model via `llama-cpp-python` (llama.cpp)
+- **Frontend:** Tauri 2 + React 19 + TypeScript desktop app (`tauri-ui/`)
+- **Backend:** FastAPI server running locally on port 5748 (`api/server.py`)
+- **Model:** GGUF quantized LLM loaded via `llama-cpp-python`
+- **Data:** Local JSON files in `data/` (users, sessions, passport, settings)
 
 ---
 
 ## Features
 
-- **AI Chat** — real-time Socratic CS tutoring via streaming LLM responses
-- **Progress Analytics** — animated subject mastery bars, weekly activity chart, accuracy ring
-- **Practice Mode** — quiz-style questions with instant AI feedback
-- **Exam Planner** — schedule topics and track upcoming work
-- **Focus Mode** — distraction-free study timer
-- **Subject Management** — organize topics across DSA, OS, Networks, DB, OOP, and more
-- **Offline-first** — full functionality without internet after model download
+| Feature | Status | Module |
+|---|---|---|
+| Streaming AI chat (Socratic tutor) | ✅ | `core/inference.py` |
+| User registration & login (bcrypt) | ✅ | `auth/auth_manager.py` |
+| Analogy/answer cache (fast lookup) | ✅ | `cache/ghost_model.py` |
+| Topic mastery tracking | ✅ | `passport/mastery_store.py` |
+| Quiz generation & evaluation | ✅ | `core/quiz_engine.py` |
+| Hardware auto-detection (RAM → quant tier) | ✅ | `core/benchmark.py` |
+| Urdu/English language detection | ✅ | `core/language_detector.py` |
+| Progress analytics (animated bars, charts) | ✅ | `ProgressScreen.tsx` |
+| Exam planner | ✅ | `ExamPlannerScreen.tsx` |
+| Focus mode (study timer) | ✅ | `FocusModeScreen.tsx` |
+| PyInstaller packaging | ✅ | `aristotle.spec` / `build.ps1` |
 
 ---
 
 ## Prerequisites
 
-| Requirement | Version |
-|---|---|
-| Python | 3.9+ |
-| Node.js | 18+ |
-| Rust | 1.77+ (for Tauri) |
-| RAM | 8 GB minimum |
-| Disk | 10 GB free |
-| OS | Windows 10/11, macOS 11+, Ubuntu 20.04+ |
+| Tool | Version | Why |
+|---|---|---|
+| Python | 3.9+ | Backend |
+| Node.js | 18+ | Tauri frontend |
+| Rust | 1.77+ | Tauri native shell |
+| RAM | 8 GB min | LLM inference |
+| Disk | 10 GB free | Model storage |
 
 ---
 
 ## Quick Start
 
-### 1. Clone the repository
+### Option A — One command (Windows, recommended)
+
+```powershell
+.\start.ps1
+```
+
+This starts the Python backend and the Tauri desktop window together. Make sure you've completed the setup steps below first.
+
+---
+
+### Option B — Manual (step by step)
+
+#### 1. Clone
 
 ```bash
 git clone https://github.com/Muhammed-Haider/aristotle-ai.git
 cd aristotle-ai
 ```
 
-### 2. Set up the Python backend
+#### 2. Python environment
 
 ```bash
-# Create and activate virtual environment
 python -m venv venv
 
 # Windows
@@ -96,82 +115,68 @@ venv\Scripts\activate
 
 # macOS / Linux
 source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
 ```
 
-> If `llama-cpp-python` fails to build on Windows, use the prebuilt wheel:
+#### 3. Install Python dependencies
+
+```bash
+pip install -r requirements.txt
+pip install fastapi "uvicorn[standard]"
+```
+
+> On Windows, if `llama-cpp-python` fails to build from source:
 > ```bash
 > pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
 > ```
 
-### 3. Download the AI model
+#### 4. Download the AI model
 
-**Option A — Automatic (recommended)**
 ```bash
 python setup.py
 ```
-Downloads TinyLlama Q4_K_M (~650 MB) from HuggingFace automatically.
 
-**Option B — Manual**
-1. Go to [TinyLlama-1.1B-GGUF on HuggingFace](https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF)
-2. Download `tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf`
-3. Place it at `./models/model_new.gguf`
+This downloads TinyLlama Q4_K_M (~650 MB) into `./models/model_new.gguf`.
 
-### 4. Start the FastAPI backend
+**Or manually:**
+1. Download `tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf` from [HuggingFace](https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF)
+2. Place it at `./models/model_new.gguf`
+
+#### 5. Start the backend
 
 ```bash
-python -m uvicorn api.main:app --port 5748 --reload
+python -m api.server
 ```
 
-The backend runs at `http://127.0.0.1:5748`. Keep this terminal open.
+Leave this terminal open. The API runs at `http://127.0.0.1:5748`.
+Visit `http://127.0.0.1:5748/docs` to verify all endpoints are up.
 
-> To verify it's working, open `http://127.0.0.1:5748/docs` in a browser — you'll see the interactive API docs.
-
-### 5. Run the Tauri desktop app
-
-Open a **second terminal**:
+#### 6. Start the Tauri frontend (new terminal)
 
 ```bash
 cd tauri-ui
-
-# Install Node dependencies (first time only)
-npm install
-
-# Install Tauri CLI (first time only)
-npm install -g @tauri-apps/cli
-
-# Launch in development mode
-npm run tauri dev
+npm install        # first time only
+npm run tauri dev  # opens the desktop window
 ```
-
-The desktop window opens automatically. It connects to the backend on port 5748.
 
 ---
 
-## Running just the frontend (browser mode)
+## API Endpoints
 
-If you want to develop the UI without the full Tauri shell:
+The backend exposes these endpoints at `http://127.0.0.1:5748`:
 
-```bash
-cd tauri-ui
-npm install
-npm run dev
-```
-
-Open `http://localhost:1420` in your browser.
-
----
-
-## Running the legacy PyQt6 app
-
-The original PyQt6 desktop app is still available:
-
-```bash
-# Make sure venv is active and model is downloaded
-python main.py
-```
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/chat/stream` | Streaming LLM response (SSE) |
+| `POST` | `/auth/register` | Create new account |
+| `POST` | `/auth/login` | Authenticate user |
+| `POST` | `/auth/logout` | End session |
+| `GET` | `/auth/session` | Get current session |
+| `GET` | `/passport` | Topic mastery data for current user |
+| `GET` | `/quiz` | Generate or fetch a quiz question (`?topic=`) |
+| `POST` | `/quiz/evaluate` | Grade a student answer |
+| `GET` | `/settings` | Read app settings |
+| `POST` | `/settings` | Save a setting |
+| `GET` | `/models` | List available `.gguf` model files |
 
 ---
 
@@ -179,39 +184,61 @@ python main.py
 
 ```
 aristotle-ai/
-├── main.py                  # PyQt6 legacy entry point
-├── api/                     # FastAPI backend
-│   ├── main.py              # App factory, routes
-│   ├── inference.py         # LLM streaming endpoint
-│   ├── auth.py              # User authentication
-│   └── passport.py          # Progress / mastery tracking
-├── core/                    # Shared inference engine
-│   └── inference.py         # llama-cpp-python wrapper
-├── ui/                      # PyQt6 UI (legacy)
+│
+├── api/
+│   └── server.py              # FastAPI app — all endpoints
+│
+├── core/
+│   ├── inference.py           # llama-cpp-python wrapper, singleton, streaming
+│   ├── quiz_engine.py         # LLM question generation + answer evaluation
+│   ├── benchmark.py           # Hardware detection → quantization tier
+│   └── language_detector.py  # Urdu / English detection
+│
+├── auth/
+│   └── auth_manager.py        # Register, login, bcrypt hashing, session
+│
+├── cache/
+│   └── ghost_model.py         # Keyword analogy lookup, quiz question caching
+│
+├── passport/
+│   └── mastery_store.py       # Per-user topic scores, quiz history
+│
+├── ui/                        # Legacy PyQt6 desktop UI (still functional)
 │   ├── main_window.py
 │   ├── chat_window.py
-│   └── login_screen.py
-├── tauri-ui/                # Tauri desktop frontend
+│   ├── login_screen.py
+│   ├── register_screen.py
+│   ├── onboarding_screen.py
+│   ├── quiz_panel.py
+│   ├── progress_panel.py
+│   ├── benchmark_screen.py
+│   └── settings_panel.py
+│
+├── tauri-ui/                  # Modern Tauri desktop frontend
 │   ├── src/
-│   │   ├── screens/         # All app screens
-│   │   │   ├── DashboardScreen.tsx
-│   │   │   ├── ChatScreen.tsx
-│   │   │   ├── ProgressScreen.tsx
-│   │   │   ├── PracticeScreen.tsx
-│   │   │   ├── FocusModeScreen.tsx
-│   │   │   ├── ExamPlannerScreen.tsx
-│   │   │   └── SubjectsScreen.tsx
-│   │   ├── api.ts           # HTTP client (port 5748)
-│   │   ├── App.tsx          # Root component + routing
-│   │   └── index.css        # Global styles + animations
-│   ├── src-tauri/           # Rust/Tauri configuration
-│   │   └── tauri.conf.json
+│   │   ├── screens/           # 20 React screens (see tauri-ui/README.md)
+│   │   ├── api.ts             # HTTP client for port 5748
+│   │   ├── App.tsx            # Root + navigation state
+│   │   └── index.css          # Global styles + animations
+│   ├── src-tauri/
+│   │   └── tauri.conf.json    # Window config (1100×720, min 900×600)
 │   └── package.json
-├── models/                  # GGUF models — never committed
-├── data/                    # User data — never committed
-├── specs/                   # Feature specifications (SDD)
-├── history/                 # Prompt History Records
-├── .specify/                # Project constitution + templates
+│
+├── data/                      # Local JSON storage (git-ignored)
+│   ├── users.json             # Accounts + bcrypt hashes
+│   ├── passport.json          # Topic mastery per user
+│   ├── session.json           # Current logged-in user
+│   ├── settings.json          # App config (RAM tier, language, model path)
+│   ├── analogies.json         # Pre-written CS analogy cache
+│   └── quiz_questions.json    # Pre-written quiz question bank
+│
+├── models/                    # GGUF model files (git-ignored)
+│
+├── main.py                    # Legacy PyQt6 entry point
+├── milestone_zero.py          # Core inference validation script
+├── setup.py                   # Model auto-downloader
+├── start.ps1                  # One-command dev launcher (Windows)
+├── build.ps1                  # PyInstaller build script
 ├── requirements.txt
 └── README.md
 ```
@@ -220,58 +247,67 @@ aristotle-ai/
 
 ## Tech Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Desktop shell | [Tauri 2](https://tauri.app/) | Lightweight native window (Rust-based) |
-| UI framework | React 19 + TypeScript | Component-based frontend |
-| Styling | Tailwind CSS 4 | Utility-first CSS |
-| Build tool | Vite 7 | Fast dev server + bundler |
-| Backend | [FastAPI](https://fastapi.tiangolo.com/) | Local HTTP API server |
-| AI inference | [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) | CPU-only LLM inference |
-| Model format | GGUF (Q4_K_M) | Quantized model for low RAM usage |
-| Legacy UI | PyQt6 | Original cross-platform desktop GUI |
-| Packaging | PyInstaller | Standalone executable (Phase 9) |
+| Layer | Technology |
+|---|---|
+| Desktop shell | [Tauri 2](https://tauri.app/) (Rust) |
+| UI framework | React 19 + TypeScript |
+| Styling | Tailwind CSS 4 |
+| Build tool | Vite 7 |
+| HTTP backend | [FastAPI](https://fastapi.tiangolo.com/) + Uvicorn |
+| LLM inference | [llama-cpp-python](https://github.com/abetlen/llama-cpp-python) |
+| Model format | GGUF (Q4_K_M default) |
+| Auth | bcrypt password hashing |
+| Data storage | Local JSON files |
+| Packaging | PyInstaller (`aristotle.spec`) |
+| Legacy UI | PyQt6 |
 
 ---
 
 ## Model Options
 
-| Model | File size | RAM usage | Quality | Recommended for |
-|---|---|---|---|---|
-| TinyLlama Q4_K_M | 650 MB | ~900 MB | Good | **Default** — 8 GB RAM devices |
-| Gemma 2B Q4_K_M | 1.6 GB | ~2 GB | Better | 12 GB RAM devices |
-| Phi-3 Mini Q4_K_M | 2.3 GB | ~3 GB | Best | 16 GB+ RAM devices |
+| Model | Size | RAM usage | Quality |
+|---|---|---|---|
+| TinyLlama Q4_K_M | 650 MB | ~900 MB | Good — **default, works on 8 GB** |
+| Gemma 2B Q4_K_M | 1.6 GB | ~2 GB | Better — 12 GB devices |
+| Phi-3 Mini Q4_K_M | 2.3 GB | ~3 GB | Best — 16 GB+ devices |
+
+The app auto-detects your RAM on first run and picks the right quantization tier.
 
 ---
 
 ## Development Phases
 
-- ✅ **Phase 1** — Milestone Zero: terminal inference validation
-- ✅ **Phase 2** — Cache layer: pre-cached common questions
-- ✅ **Phase 3** — Authentication: user login/register
-- ✅ **Phase 4** — Mastery Passport: learning progress tracking
-- ✅ **Phase 5** — UI Shell: PyQt6 desktop app
-- ✅ **Phase 5b** — Tauri UI: React + TypeScript desktop shell
-- ⬜ **Phase 6** — Quiz Engine: adaptive assessments
-- ⬜ **Phase 7** — Bilingual support: English & Urdu
-- ⬜ **Phase 8** — Hardware benchmark: auto-optimize for device
-- ⬜ **Phase 9** — Packaging: distributable installer
+- ✅ **Phase 1** — Milestone Zero: terminal inference validation (`milestone_zero.py`)
+- ✅ **Phase 2** — Cache layer: keyword analogy lookup (`cache/ghost_model.py`)
+- ✅ **Phase 3** — Authentication: bcrypt register/login (`auth/auth_manager.py`)
+- ✅ **Phase 4** — Mastery Passport: per-user topic tracking (`passport/mastery_store.py`)
+- ✅ **Phase 5** — UI Shell: PyQt6 legacy app + Tauri React app
+- ✅ **Phase 6** — Quiz Engine: LLM question generation + evaluation (`core/quiz_engine.py`)
+- ✅ **Phase 7** — Bilingual: Urdu/English detection (`core/language_detector.py`)
+- ⬜ **Phase 8** — Hardware benchmark UI: auto-optimize model selection
+- ⬜ **Phase 9** — Packaging: distributable installer via PyInstaller
 
 ---
 
 ## Troubleshooting
 
-**Backend not connecting (UI shows no data)**
+**Backend not starting**
+```bash
+# Make sure fastapi and uvicorn are installed (not in requirements.txt yet)
+pip install fastapi "uvicorn[standard]"
+python -m api.server
 ```
-Check that the FastAPI server is running:
-  python -m uvicorn api.main:app --port 5748
-Then restart the Tauri app.
+
+**Tauri window shows no data / blank screens**
+```
+The FastAPI backend must be running before you open the Tauri app.
+Run python -m api.server first, then npm run tauri dev.
 ```
 
 **Model file not found**
 ```
 Error: Model file not found at ./models/model_new.gguf
-Fix: Run python setup.py, or manually place the .gguf file at ./models/model_new.gguf
+Fix:  python setup.py   (auto-downloads the model)
 ```
 
 **llama-cpp-python build fails on Windows**
@@ -279,29 +315,28 @@ Fix: Run python setup.py, or manually place the .gguf file at ./models/model_new
 pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
 ```
 
-**Tauri dev fails with Rust errors**
+**Tauri dev fails (Rust errors)**
 ```bash
 rustup update stable
 ```
 
-**Node version mismatch**
+**Node version too old**
 ```bash
 node --version   # must be 18+
-nvm use 20       # if using nvm
 ```
 
 ---
 
-## Commit Format
+## Commit format
 
 ```
 [module] short description
 
-Examples:
 [inference] add streaming support
 [ui] animate progress bars in ProgressScreen
-[auth] implement Argon2 password hashing
-[api] add /passport endpoint
+[auth] implement session persistence
+[api] add /quiz/evaluate endpoint
+[docs] update README
 ```
 
 ---
