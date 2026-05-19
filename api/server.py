@@ -186,16 +186,20 @@ async def benchmark_run():
     """Stream benchmark progress as SSE events."""
     import asyncio, threading
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     queue: asyncio.Queue = asyncio.Queue()
 
     def _cb(pct: int, msg: str):
         loop.call_soon_threadsafe(queue.put_nowait, {"pct": pct, "msg": msg})
 
     def _work():
-        result = benchmark.run_benchmark(_cb)
-        loop.call_soon_threadsafe(queue.put_nowait, {"pct": 100, "msg": "Complete!", "result": result})
-        loop.call_soon_threadsafe(queue.put_nowait, None)
+        try:
+            result = benchmark.run_benchmark(_cb)
+            loop.call_soon_threadsafe(queue.put_nowait, {"pct": 100, "msg": "Complete!", "result": result})
+        except Exception as e:
+            loop.call_soon_threadsafe(queue.put_nowait, {"pct": 0, "msg": f"Error: {e}", "error": True})
+        finally:
+            loop.call_soon_threadsafe(queue.put_nowait, None)
 
     threading.Thread(target=_work, daemon=True).start()
 
