@@ -4,7 +4,9 @@ import { apiGet, apiPost } from "../api";
 interface ModelInfo { name: string; size_label: string; speed: string; }
 interface Settings { language: string; model_file: string; quantization_tier: string; }
 
-export default function SettingsScreen() {
+interface Props { onBenchmark?: () => void; }
+
+export default function SettingsScreen({ onBenchmark }: Props) {
   const [_settings, setSettings] = useState<Settings | null>(null);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [selectedModel, setSelectedModel] = useState("");
@@ -108,6 +110,25 @@ export default function SettingsScreen() {
             </button>
           ))}
         </div>
+      </section>
+
+      <div className="h-px bg-white/5 mb-8" />
+
+      {/* hardware benchmark */}
+      <section className="mb-8">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Hardware</p>
+        <p className="text-slate-400 text-xs mb-4">Re-run the system scan to update your recommended model tier.</p>
+        <button
+          onClick={onBenchmark}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:brightness-110 active:scale-[0.98]"
+          style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.3)", color: "#60a5fa" }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <rect x="9" y="9" width="6" height="6" />
+            <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+          </svg>
+          Re-run Hardware Benchmark
+        </button>
       </section>
 
       {saved && (

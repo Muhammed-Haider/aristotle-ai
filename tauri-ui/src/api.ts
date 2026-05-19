@@ -58,3 +58,40 @@ export function streamChat(
 
   return () => ctrl.abort();
 }
+
+export interface BenchmarkResult {
+  benchmark_done: boolean;
+  ram_gb: number;
+  quantization_tier: string;
+}
+
+export function streamBenchmark(
+  onProgress: (pct: number, msg: string) => void,
+  onDone: (result: BenchmarkResult) => void,
+  onError: (e: string) => void
+): void {
+  fetch(`${BASE}/benchmark/run`, { method: "POST" })
+    .then(async (res) => {
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") return;
+          try {
+            const ev = JSON.parse(data);
+            onProgress(ev.pct, ev.msg);
+            if (ev.result) onDone(ev.result);
+          } catch { /* skip */ }
+        }
+      }
+    })
+    .catch((e) => onError(String(e)));
+}

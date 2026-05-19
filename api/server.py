@@ -167,6 +167,54 @@ def list_models():
     return result
 
 
+# ── benchmark ─────────────────────────────────────────────────────────────────
+
+class TierRequest(BaseModel):
+    tier: str
+
+@app.get("/benchmark/status")
+def benchmark_status():
+    s = benchmark.get_settings()
+    return {
+        "benchmark_done": s.get("benchmark_done", False),
+        "ram_gb": s.get("ram_gb", 0.0),
+        "quantization_tier": s.get("quantization_tier", "Q4_K_M"),
+    }
+
+@app.post("/benchmark/run")
+async def benchmark_run():
+    """Stream benchmark progress as SSE events."""
+    import asyncio, threading
+
+    loop = asyncio.get_event_loop()
+    queue: asyncio.Queue = asyncio.Queue()
+
+    def _cb(pct: int, msg: str):
+        loop.call_soon_threadsafe(queue.put_nowait, {"pct": pct, "msg": msg})
+
+    def _work():
+        result = benchmark.run_benchmark(_cb)
+        loop.call_soon_threadsafe(queue.put_nowait, {"pct": 100, "msg": "Complete!", "result": result})
+        loop.call_soon_threadsafe(queue.put_nowait, None)
+
+    threading.Thread(target=_work, daemon=True).start()
+
+    async def _stream():
+        while True:
+            event = await queue.get()
+            if event is None:
+                yield "data: [DONE]\n\n"
+                break
+            yield f"data: {json.dumps(event)}\n\n"
+
+    return StreamingResponse(_stream(), media_type="text/event-stream")
+
+@app.post("/benchmark/set-tier")
+def benchmark_set_tier(req: TierRequest):
+    benchmark.save_setting("quantization_tier", req.tier)
+    return {"success": True, "quantization_tier": req.tier}
+
+
 # ── entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

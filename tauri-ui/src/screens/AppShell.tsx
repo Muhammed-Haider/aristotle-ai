@@ -8,8 +8,9 @@ import PracticeScreen from "./PracticeScreen";
 import ProgressScreen from "./ProgressScreen";
 import ExamPlannerScreen from "./ExamPlannerScreen";
 import ProfileScreen from "./ProfileScreen";
+import SettingsScreen from "./SettingsScreen";
 
-type Tab = "dashboard" | "subjects" | "learn" | "focus" | "practice" | "progress" | "exam" | "profile";
+type Tab = "dashboard" | "subjects" | "learn" | "focus" | "practice" | "progress" | "exam" | "profile" | "settings";
 
 const NAV: Array<{ id: Tab; label: string; icon: React.JSX.Element }> = [
   { id: "dashboard", label: "Dashboard", icon: <HomeIcon /> },
@@ -25,9 +26,10 @@ const NAV: Array<{ id: Tab; label: string; icon: React.JSX.Element }> = [
 interface Props {
   user: { email: string; name: string };
   onLogout: () => void;
+  onBenchmark: () => void;
 }
 
-export default function AppShell({ user, onLogout }: Props) {
+export default function AppShell({ user, onLogout, onBenchmark }: Props) {
   const [tab, setTab] = useState<Tab>("dashboard");
   const [focusMode, setFocusMode] = useState(false);
 
@@ -66,9 +68,15 @@ export default function AppShell({ user, onLogout }: Props) {
           ))}
         </nav>
 
-        {/* user */}
-        <div className="border-t border-[#1e2a3e] pt-4 px-1 mt-4">
-          <div className="flex items-center gap-2 mb-2 px-2">
+        {/* bottom: settings */}
+        <div className="border-t border-[#1e2a3e] pt-3 mt-4">
+          <button
+            onClick={() => setTab("settings")}
+            className={`nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-left w-full transition-all ${tab === "settings" ? "active" : ""}`}>
+            <span className="w-4 h-4 shrink-0"><SettingsIcon /></span>
+            Settings
+          </button>
+          <div className="flex items-center gap-2 mt-3 px-3">
             <div className="w-7 h-7 rounded-full bg-[#2563eb] flex items-center justify-center text-white text-xs font-semibold shrink-0">
               {(user.name || user.email)[0].toUpperCase()}
             </div>
@@ -86,6 +94,7 @@ export default function AppShell({ user, onLogout }: Props) {
         {tab === "progress"  && <ProgressScreen />}
         {tab === "exam"      && <ExamPlannerScreen />}
         {tab === "profile"   && <ProfileScreen user={user} onLogout={handleLogout} />}
+        {tab === "settings"  && <SettingsScreen onBenchmark={onBenchmark} />}
       </main>
     </div>
   );
@@ -114,4 +123,7 @@ function CalendarIcon() {
 }
 function PersonIcon() {
   return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+}
+function SettingsIcon() {
+  return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
 }
