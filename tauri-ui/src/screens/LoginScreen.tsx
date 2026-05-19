@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { apiPost } from "../api";
+import { AuthLeft } from "./_AuthShared";
 
 interface Props {
   onRegister: () => void;
+  onForgot: () => void;
+  onHome: () => void;
   onSuccess: (user: { email: string; name: string }) => void;
 }
 
-export default function LoginScreen({ onRegister, onSuccess }: Props) {
+export default function LoginScreen({ onRegister, onForgot, onHome, onSuccess }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,54 +28,60 @@ export default function LoginScreen({ onRegister, onSuccess }: Props) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0f1e] relative overflow-hidden">
-      {/* background glow */}
-      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="h-screen w-screen flex overflow-hidden">
+      <AuthLeft
+        title="Welcome to Aristotle"
+        subtitle="Learn with Reason. Your AI-powered study companion for smarter learning."
+      />
 
-      <div className="glass rounded-2xl p-10 w-full max-w-sm fade-in z-10">
-        {/* logo */}
-        <div className="flex flex-col items-center mb-8 gap-2">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-500/30">
-            A
-          </div>
-          <h1 className="text-xl font-semibold text-white tracking-tight">Aristotle AI</h1>
-          <p className="text-sm text-slate-400">Your offline CS tutor</p>
+      {/* right */}
+      <div className="flex-1 flex flex-col items-center justify-center bg-[#0d1117] px-12 relative">
+        <div className="w-full max-w-sm fade-in">
+          <h2 className="text-2xl font-bold text-white text-center mb-1">Welcome Back</h2>
+          <p className="text-[#8899b0] text-sm text-center mb-8">Sign in to continue your progress</p>
+
+          <form onSubmit={submit} className="flex flex-col gap-4">
+            <div>
+              <label className="block text-sm text-[#c8d3e0] mb-1.5">Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+                placeholder="you@example.com" className="input-field" />
+            </div>
+            <div>
+              <label className="block text-sm text-[#c8d3e0] mb-1.5">Password</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+                placeholder="••••••••" className="input-field" />
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center gap-2 text-[#8899b0] cursor-pointer select-none">
+                <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
+                  className="w-4 h-4 accent-[#2563eb] rounded" />
+                Remember me
+              </label>
+              <button type="button" onClick={onForgot} className="text-[#2563eb] hover:text-blue-400 transition-colors">
+                Forgot password?
+              </button>
+            </div>
+
+            {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+
+            <button type="submit" disabled={loading} className="btn-primary mt-1">
+              {loading ? "Signing in…" : "Sign In"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-[#8899b0] mt-5">
+            Don't have an account?{" "}
+            <button onClick={onRegister} className="text-[#2563eb] hover:text-blue-400 transition-colors font-medium">
+              Sign Up
+            </button>
+          </p>
         </div>
 
-        <form onSubmit={submit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Email</label>
-            <input
-              type="email" value={email} onChange={e => setEmail(e.target.value)} required
-              placeholder="you@example.com"
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:bg-white/8 transition-all"
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Password</label>
-            <input
-              type="password" value={password} onChange={e => setPassword(e.target.value)} required
-              placeholder="••••••••"
-              className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 transition-all"
-            />
-          </div>
-
-          {error && <p className="text-red-400 text-xs text-center">{error}</p>}
-
-          <button
-            type="submit" disabled={loading}
-            className="mt-2 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-semibold rounded-xl py-2.5 text-sm transition-all disabled:opacity-50 shadow-lg shadow-blue-500/20"
-          >
-            {loading ? "Signing in…" : "Sign In"}
-          </button>
-        </form>
-
-        <p className="text-center text-xs text-slate-500 mt-6">
-          No account?{" "}
-          <button onClick={onRegister} className="text-blue-400 hover:text-blue-300 transition-colors">
-            Create one
-          </button>
-        </p>
+        <button onClick={onHome}
+          className="absolute bottom-6 left-8 flex items-center gap-1.5 text-sm text-[#8899b0] hover:text-white transition-colors">
+          <span>←</span> Back to home
+        </button>
       </div>
     </div>
   );

@@ -1,43 +1,147 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #0a0f1e;
+  background: #0d1117;
   color: #e2e8f0;
   overflow: hidden;
   user-select: none;
+  -webkit-font-smoothing: antialiased;
 }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2d3a52; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: #2a3850; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4f6e; }
 
-.glass {
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-
-.gradient-text {
-  background: linear-gradient(135deg, #60a5fa, #a78bfa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+.fade-up { animation: fadeUp 0.3s ease forwards; }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 .fade-in { animation: fadeIn 0.25s ease forwards; }
 
 @keyframes pulse-dot {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  0%, 80%, 100% { transform: scale(0.5); opacity: 0.3; }
   40%           { transform: scale(1);   opacity: 1; }
 }
 .typing-dot { animation: pulse-dot 1.2s infinite ease-in-out; }
 .typing-dot:nth-child(2) { animation-delay: 0.15s; }
 .typing-dot:nth-child(3) { animation-delay: 0.30s; }
+
+/* Auth split layout */
+.auth-left {
+  background: linear-gradient(135deg, #060c1a 0%, #0a1535 40%, #0d1f52 100%);
+  position: relative;
+  overflow: hidden;
+}
+.auth-left::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -20%;
+  width: 70%;
+  height: 80%;
+  background: radial-gradient(ellipse, rgba(37,99,235,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.auth-left::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  left: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(ellipse, rgba(99,37,235,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* App sidebar */
+.sidebar { background: #0d1117; border-right: 1px solid #1e2a3e; }
+.nav-item { color: #8899b0; transition: all 0.15s; }
+.nav-item:hover { color: #e2e8f0; background: #131c2e; }
+.nav-item.active { color: #fff; background: #2563eb; border-radius: 8px; }
+
+/* Cards */
+.card { background: #131c2e; border: 1px solid #1e2a3e; border-radius: 12px; }
+.card-hover:hover { border-color: #2a3f5f; background: #162035; }
+
+/* Inputs */
+.input-field {
+  background: #131c2e;
+  border: 1px solid #1e2a3e;
+  border-radius: 8px;
+  color: #e2e8f0;
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input-field::placeholder { color: #4a5568; }
+.input-field:focus { border-color: #2563eb; }
+
+/* Primary button */
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s;
+}
+.btn-primary:hover { background: #1d4ed8; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Secondary button */
+.btn-secondary {
+  background: #131c2e;
+  color: #e2e8f0;
+  border: 1px solid #1e2a3e;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-secondary:hover { background: #1a2540; border-color: #2a3f5f; }
+
+/* Glass card */
+.glass {
+  background: rgba(19, 28, 46, 0.8);
+  border: 1px solid #1e2a3e;
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+}
+
+/* OTP input boxes */
+.otp-box {
+  width: 48px;
+  height: 52px;
+  background: #131c2e;
+  border: 1px solid #1e2a3e;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.otp-box:focus { border-color: #2563eb; }

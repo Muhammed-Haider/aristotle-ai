@@ -5,7 +5,7 @@ interface ModelInfo { name: string; size_label: string; speed: string; }
 interface Settings { language: string; model_file: string; quantization_tier: string; }
 
 export default function SettingsScreen() {
-  const [settings, setSettings] = useState<Settings | null>(null);
+  const [_settings, setSettings] = useState<Settings | null>(null);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [selectedModel, setSelectedModel] = useState("");
   const [language, setLanguage] = useState("english");
