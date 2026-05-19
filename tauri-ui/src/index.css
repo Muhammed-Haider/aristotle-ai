@@ -130,6 +130,27 @@ body {
   backdrop-filter: blur(12px);
 }
 
+/* Progress bar animations */
+@keyframes progressFill {
+  from { width: 0%; opacity: 0.6; }
+  to   { opacity: 1; }
+}
+.progress-bar {
+  animation: progressFill 0.9s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+}
+@keyframes shimmer {
+  0%   { transform: translateX(-100%) skewX(-20deg); }
+  100% { transform: translateX(300%) skewX(-20deg); }
+}
+.progress-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+  animation: shimmer 2.5s ease-in-out infinite;
+  animation-delay: var(--shimmer-delay, 0s);
+}
+
 /* OTP input boxes */
 .otp-box {
   width: 48px;
