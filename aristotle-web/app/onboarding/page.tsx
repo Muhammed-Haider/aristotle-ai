@@ -35,7 +35,6 @@ export default function OnboardingPage() {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [level, setLevel]       = useState("Beginner");
   const [goals, setGoals]       = useState<string[]>([]);
-  const [custom, setCustom]     = useState("");
   const router = useRouter();
 
   function toggleSubject(s: string) {
@@ -43,12 +42,6 @@ export default function OnboardingPage() {
   }
   function toggleGoal(g: string) {
     setGoals(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
-  }
-  function addCustom() {
-    if (custom.trim() && !subjects.includes(custom.trim())) {
-      setSubjects(prev => [...prev, custom.trim()]);
-      setCustom("");
-    }
   }
   function finish() {
     updateUser({ subjects: subjects.length > 0 ? subjects : ["Computer Science"], level });
@@ -72,8 +65,8 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="w-full max-w-3xl text-center fade-in">
             <h1 className="text-3xl font-bold mb-2">Which subjects are you studying?</h1>
-            <p className="text-[#8899b0] text-sm mb-8">Select all that apply or add your own</p>
-            <div className="flex flex-wrap gap-3 justify-center mb-6">
+            <p className="text-[#8899b0] text-sm mb-8">Select all that apply — choose at least one</p>
+            <div className="flex flex-wrap gap-3 justify-center">
               {SUBJECTS.map(s => (
                 <button key={s} onClick={() => toggleSubject(s)}
                   className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all ${
@@ -84,18 +77,6 @@ export default function OnboardingPage() {
                   {s}
                 </button>
               ))}
-            </div>
-            <div className="flex gap-2 max-w-lg mx-auto">
-              <input value={custom} onChange={e => setCustom(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && addCustom()}
-                placeholder="+ Add Custom Subject"
-                className="flex-1 bg-transparent border border-[#2a3a54] text-sm text-white placeholder-[#4a5568] px-4 py-3 rounded-xl outline-none focus:border-[#2563eb] transition-colors" />
-              {custom.trim() && (
-                <button onClick={addCustom}
-                  className="px-4 py-3 bg-[#2563eb] rounded-xl text-sm font-medium hover:bg-[#1d4ed8] transition-colors">
-                  Add
-                </button>
-              )}
             </div>
           </div>
         )}
