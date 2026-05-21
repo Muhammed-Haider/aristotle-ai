@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getUser, User } from "@/lib/auth";
+import { getUser, isDemoUser, User } from "@/lib/auth";
 import {
   getMasteryForSubject, getTotalQuestions, getStreak,
   getWeeklyMinutes, getDayLogs,
@@ -27,35 +27,38 @@ export default function ProgressPage() {
     setUser(u);
     if (!u) return;
 
-    // Seed for consistent fallback values per user
+    const demo = isDemoUser(u);
     const seed = u.email.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
 
     const subs = u.subjects.map((s, i) => {
       const realMastery = getMasteryForSubject(s);
       return {
         subject:   s,
-        mastery:   realMastery ?? MASTERY_FB[(seed + i * 7) % MASTERY_FB.length],
-        questions: QCOUNT_FB[(seed + i * 3) % QCOUNT_FB.length],
+        mastery:   realMastery ?? (demo ? MASTERY_FB[(seed + i * 7) % MASTERY_FB.length] : 0),
+        questions: demo ? QCOUNT_FB[(seed + i * 3) % QCOUNT_FB.length] : 0,
         color:     COLORS[i % COLORS.length],
       };
     });
     setSubjects(subs);
 
     const realTotal = getTotalQuestions();
-    setTotalQ(realTotal || subs.reduce((a, s) => a + s.questions, 0));
+    setTotalQ(realTotal || (demo ? subs.reduce((a, s) => a + s.questions, 0) : 0));
     setAvgMastery(Math.round(subs.reduce((a, s) => a + s.mastery, 0) / Math.max(subs.length, 1)));
-    setStreak(getStreak() || Math.min(u.subjects.length * 2, 14));
+    setStreak(getStreak() || (demo ? 14 : 0));
 
-    // Real weekly minutes — show bars scaled by minutes studied each day
     const wm = getWeeklyMinutes();
     const hasRealData = wm.some(m => m > 0);
     if (hasRealData) {
       setWeekly(wm);
+    } else if (demo) {
+      setWeekly([35, 60, 45, 80, 65, 90, 78]);
+    } else {
+      setWeekly([0, 0, 0, 0, 0, 0, 0]);
     }
-    // else keep the nice-looking fallback
   }, []);
 
   if (!user) return null;
+  const demo = isDemoUser(user);
 
   const maxWeekly = Math.max(...weekly, 1);
 
@@ -116,7 +119,9 @@ export default function ProgressPage() {
         <p className="text-[10px] text-[#4a5568] mt-3">
           {weekly.some(m => m > 0)
             ? "Minutes studied per day this week"
-            : "Complete a study session to see real activity"}
+            : demo
+            ? "Study sessions will appear here"
+            : "Complete your first study session to see activity"}
         </p>
       </div>
 
@@ -127,7 +132,9 @@ export default function ProgressPage() {
           <span className="text-[10px] text-[#4a5568]">
             {subjects.some(s => getMasteryForSubject(s.subject) !== null)
               ? "Based on your practice results"
-              : "Complete practice quizzes to update mastery"}
+              : demo
+              ? "Take quizzes to update mastery"
+              : "Complete practice quizzes to see your mastery"}
           </span>
         </div>
         <div className="space-y-5">

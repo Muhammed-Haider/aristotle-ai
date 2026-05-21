@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getUser, User } from "@/lib/auth";
+import { getUser, isDemoUser, User } from "@/lib/auth";
 import {
   getStreak, getTotalXP, getTodayStats, getAvgAccuracy,
 } from "@/lib/tracking";
@@ -20,21 +20,18 @@ export default function DashboardPage() {
     setUser(u);
     if (!u) return;
 
-    // Load real stats — with sensible demo fallbacks for a fresh account
-    const joined    = new Date(2024, 8, 1);
-    const daysSince = Math.floor((Date.now() - joined.getTime()) / 86_400_000);
-
     const realStreak = getStreak();
     const realXP     = getTotalXP();
     const today      = getTodayStats();
     const acc        = getAvgAccuracy();
+    const demo       = isDemoUser(u);
 
-    setStreak(realStreak  || Math.min(Math.floor(daysSince / 3), 14));
-    setXp(realXP          || Math.min(daysSince * 18 + u.subjects.length * 120, 9999));
-    setTodayMins(today.minutes  || 165);
-    setTodayQ(today.questions   || 45);
-    setTodayTopics(today.topics || 8);
-    setAccuracy(acc || 87);
+    setStreak(realStreak  || (demo ? 14  : 0));
+    setXp(realXP          || (demo ? 4820 : 0));
+    setTodayMins(today.minutes  || (demo ? 165 : 0));
+    setTodayQ(today.questions   || (demo ? 45  : 0));
+    setTodayTopics(today.topics || (demo ? 8   : 0));
+    setAccuracy(acc || (demo ? 87 : 0));
   }, []);
 
   if (!user) return null;

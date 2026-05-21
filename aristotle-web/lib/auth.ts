@@ -75,3 +75,8 @@ export async function signOut(): Promise<void> {
   const supabase = createClient();
   await supabase.auth.signOut();
 }
+
+/** Returns true if the current user is the demo account. */
+export function isDemoUser(user: User | null): boolean {
+  return user?.email === "demo@aristotle.ai";
+}

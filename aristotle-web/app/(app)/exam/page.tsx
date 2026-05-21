@@ -1,27 +1,36 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getUser, User } from "@/lib/auth";
+import { getUser, isDemoUser, User } from "@/lib/auth";
 
 interface Exam { name: string; date: string; daysLeft: number; color: string; prep: number; }
 
-const WEEK_ITEMS = [
-  { week: "This Week", items: ["Complete Quantum Mechanics", "Practice 20 problems", "Review formulas"] },
-  { week: "Next Week",  items: ["Thermodynamics review", "Past papers", "Mock exam"] },
-  { week: "Week 3",     items: ["Final revision", "Weak areas focus", "Quick reviews"] },
+const DEMO_EXAMS: Exam[] = [
+  { name: "Machine Learning Final", date: "Jun 15, 2025", daysLeft: 25, color: "#ef4444", prep: 65 },
+  { name: "Algorithms Midterm",     date: "Jun 22, 2025", daysLeft: 32, color: "#f59e0b", prep: 42 },
+  { name: "OS & Networks Exam",     date: "Jul 1, 2025",  daysLeft: 41, color: "#10b981", prep: 38 },
+];
+
+const DEMO_WEEK_ITEMS = [
+  { week: "This Week", items: ["Complete ML Supervised Learning", "Practice 20 algorithm problems", "Review Big-O notation"] },
+  { week: "Next Week",  items: ["Deep Learning revision", "Past papers", "Mock quiz on Networks"] },
+  { week: "Week 3",     items: ["Final revision", "Focus on weak areas", "Quick topic reviews"] },
 ];
 
 export default function ExamPage() {
-  const [user, setUser]      = useState<User | null>(null);
+  const [user, setUser]         = useState<User | null>(null);
+  const [demo, setDemo]         = useState(false);
   const [examName, setExamName] = useState("");
   const [examDate, setExamDate] = useState("");
-  const [target, setTarget]  = useState("");
-  const [exams, setExams]    = useState<Exam[]>([
-    { name: "Physics Final",       date: "Dec 26, 2024", daysLeft: 9,  color: "#ef4444", prep: 65 },
-    { name: "Mathematics Midterm", date: "Jan 5, 2025",  daysLeft: 17, color: "#f59e0b", prep: 42 },
-    { name: "Chemistry Exam",      date: "Jan 12, 2025", daysLeft: 24, color: "#10b981", prep: 38 },
-  ]);
+  const [target, setTarget]     = useState("");
+  const [exams, setExams]       = useState<Exam[]>([]);
 
-  useEffect(() => { setUser(getUser()); }, []);
+  useEffect(() => {
+    const u = getUser();
+    setUser(u);
+    const isDemo = isDemoUser(u);
+    setDemo(isDemo);
+    if (isDemo) setExams(DEMO_EXAMS);
+  }, []);
   if (!user) return null;
 
   function addExam() {
@@ -42,6 +51,13 @@ export default function ExamPage() {
       </div>
 
       {/* exam cards */}
+      {!demo && exams.length === 0 && (
+        <div className="p-8 rounded-2xl border border-dashed border-[#2a3a54] flex flex-col items-center justify-center gap-2 mb-7" style={{ background: "#0c1a2e" }}>
+          <div className="text-3xl mb-1">📅</div>
+          <p className="text-white text-sm font-semibold">No exams added yet</p>
+          <p className="text-[#8899b0] text-xs">Add your first exam below to start planning</p>
+        </div>
+      )}
       <div className="flex gap-4 mb-7">
         {exams.slice(0, 3).map(e => (
           <div key={e.name} className="flex-1 p-5 rounded-2xl border border-[#1a2540]" style={{ background: "#0c1a2e" }}>
@@ -84,8 +100,13 @@ export default function ExamPage() {
         {/* study plan timeline */}
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-white mb-4">Study Plan Timeline</h2>
+          {!demo && exams.length === 0 && (
+            <div className="p-5 rounded-2xl border border-[#1a2540] text-center" style={{ background: "#0c1a2e" }}>
+              <p className="text-[#8899b0] text-xs">Your study plan will appear here once you add an exam.</p>
+            </div>
+          )}
           <div className="space-y-3">
-            {WEEK_ITEMS.map((w, wi) => (
+            {(demo ? DEMO_WEEK_ITEMS : []).map((w, wi) => (
               <div key={w.week} className="p-4 rounded-2xl border border-[#1a2540]" style={{ background: "#0c1a2e" }}>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-6 h-6 rounded-full bg-[#2563eb] flex items-center justify-center text-white text-xs font-bold shrink-0">{wi + 1}</div>
@@ -110,7 +131,10 @@ export default function ExamPage() {
           <div className="p-4 rounded-2xl border border-[#1a2540]" style={{ background: "linear-gradient(135deg, #1e1050, #0c1a2e)" }}>
             <h3 className="text-xs font-semibold text-white mb-3">Study Stats</h3>
             <div className="space-y-2 text-xs">
-              {[{ label: "Daily Goal", value: "2h 30m" }, { label: "Topics (2024)", value: "1709 topics" }, { label: "Days Active", value: "1314" }].map(s => (
+              {(demo
+                ? [{ label: "Daily Goal", value: "2h 30m" }, { label: "Topics covered", value: "47 topics" }, { label: "Days Active", value: "14" }]
+                : [{ label: "Daily Goal", value: "Set a goal" }, { label: "Topics covered", value: "0" }, { label: "Days Active", value: "0" }]
+              ).map(s => (
                 <div key={s.label} className="flex items-center justify-between">
                   <span className="text-[#8899b0]">{s.label}</span>
                   <span className="text-white font-semibold">{s.value}</span>
@@ -123,7 +147,9 @@ export default function ExamPage() {
           <div className="p-4 rounded-2xl border border-[#1a2540]" style={{ background: "#0c1a2e" }}>
             <h3 className="text-xs font-semibold text-white mb-2">Recommendation</h3>
             <p className="text-[#8899b0] text-xs leading-relaxed">
-              Physics exam in 9 days. Focus 40% of your daily time on Wave Mechanics and Thermodynamics.
+              {demo
+                ? "ML Final in 25 days. Focus 40% of your daily time on Deep Learning and Neural Networks."
+                : "Add an exam above to get personalised study recommendations."}
             </p>
           </div>
 

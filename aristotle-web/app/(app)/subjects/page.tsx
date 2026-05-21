@@ -1,25 +1,33 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getUser, User } from "@/lib/auth";
+import { getUser, isDemoUser, User } from "@/lib/auth";
+import { getMasteryForSubject } from "@/lib/tracking";
 import Link from "next/link";
 
-const COLORS = ["#2563eb", "#8b5cf6", "#10b981", "#ef4444", "#f59e0b", "#06b6d4", "#ec4899", "#84cc16"];
-const MASTERY = [65, 48, 72, 34, 81, 57, 43, 66, 29, 78, 55, 39];
-const TOPICS  = [24, 32, 18, 28, 15, 21, 19, 26, 14, 30, 22, 17];
-const TIMES   = ["2 hours ago", "Yesterday", "3 days ago", "1 week ago", "Just now", "5 hours ago", "2 days ago", "Yesterday", "4 days ago", "3 hours ago", "1 day ago", "6 days ago"];
-const INSIGHTS = [
+const COLORS   = ["#2563eb", "#8b5cf6", "#10b981", "#ef4444", "#f59e0b", "#06b6d4", "#ec4899", "#84cc16"];
+const DEMO_MASTERY  = [65, 48, 72, 34, 81, 57, 43, 66, 29, 78, 55, 39];
+const DEMO_TOPICS   = [24, 32, 18, 28, 15, 21, 19, 26, 14, 30, 22, 17];
+const DEMO_TIMES    = ["2 hours ago", "Yesterday", "3 days ago", "1 week ago", "Just now", "5 hours ago", "2 days ago", "Yesterday", "4 days ago", "3 hours ago", "1 day ago", "6 days ago"];
+const DEMO_INSIGHTS = [
   "Good momentum! Focus on weaker topics to boost mastery above 70%.",
   "You're building a foundation. Consider dedicating more time this week.",
   "Excellent progress! Keep up the consistent study habits.",
-  "You're building a foundation. Consider dedicating more time to this subject.",
   "Outstanding! You're close to mastery. Review edge cases.",
   "Steady improvement. Focus on practice problems to solidify concepts.",
+  "You're building a strong foundation — keep going!",
 ];
 
 export default function SubjectsPage() {
-  const [user, setUser]   = useState<User | null>(null);
+  const [user, setUser]     = useState<User | null>(null);
   const [search, setSearch] = useState("");
-  useEffect(() => { setUser(getUser()); }, []);
+  const [demo, setDemo]     = useState(false);
+
+  useEffect(() => {
+    const u = getUser();
+    setUser(u);
+    setDemo(isDemoUser(u));
+  }, []);
+
   if (!user) return null;
 
   const filtered = user.subjects.filter(s => s.toLowerCase().includes(search.toLowerCase()));
@@ -53,11 +61,16 @@ export default function SubjectsPage() {
       <div className="grid grid-cols-2 gap-4 mb-6">
         {filtered.map((subject, i) => {
           const color   = COLORS[i % COLORS.length];
-          const mastery = MASTERY[i % MASTERY.length];
-          const topics  = TOPICS[i % TOPICS.length];
-          const time    = TIMES[i % TIMES.length];
-          const insight = INSIGHTS[i % INSIGHTS.length];
-          const trend   = mastery >= 60 ? "Improving" : "Steady";
+          const realMastery = getMasteryForSubject(subject);
+          const mastery = demo
+            ? DEMO_MASTERY[i % DEMO_MASTERY.length]
+            : (realMastery ?? 0);
+          const topics  = demo ? DEMO_TOPICS[i % DEMO_TOPICS.length] : 0;
+          const time    = demo ? DEMO_TIMES[i % DEMO_TIMES.length] : "Not studied yet";
+          const insight = demo
+            ? DEMO_INSIGHTS[i % DEMO_INSIGHTS.length]
+            : "Complete a quiz on this subject to see personalised insights.";
+          const trend   = mastery >= 60 ? "Improving" : mastery > 0 ? "Steady" : "Not started";
 
           return (
             <div key={subject} className="p-5 rounded-2xl border border-[#1a2540] flex flex-col gap-3" style={{ background: "#0c1a2e" }}>
@@ -72,13 +85,13 @@ export default function SubjectsPage() {
                   </div>
                   <div>
                     <div className="text-white font-semibold text-sm">{subject}</div>
-                    <div className="text-[#8899b0] text-xs">{topics} topics</div>
+                    <div className="text-[#8899b0] text-xs">{topics > 0 ? `${topics} topics` : "No quizzes yet"}</div>
                   </div>
                 </div>
                 <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold border"
                   style={{ color, borderColor: color + "40", background: color + "15" }}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a10 10 0 1 1 0 20A10 10 0 0 1 12 2z"/><path d="M12 8v4l3 3"/></svg>
-                  {mastery}% Mastery
+                  {mastery > 0 ? `${mastery}% Mastery` : "New"}
                 </span>
               </div>
 
@@ -86,7 +99,7 @@ export default function SubjectsPage() {
               <div>
                 <div className="flex items-center justify-between text-xs mb-1.5">
                   <span className="text-[#8899b0]">Overall Progress</span>
-                  <span className="text-white font-semibold">{mastery}%</span>
+                  <span className="text-white font-semibold">{mastery > 0 ? `${mastery}%` : "—"}</span>
                 </div>
                 <div className="w-full h-1.5 bg-[#1a2540] rounded-full overflow-hidden">
                   <div className="h-full rounded-full transition-all duration-700" style={{ width: `${mastery}%`, background: color }} />
